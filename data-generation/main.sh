@@ -36,6 +36,8 @@ mkdir -p slurm-outputs/$SIM_NAME/
 mkdir -p slurm-outputs/$SIM_NAME/lst_files/
 touch slurm-outputs/$SIM_NAME/finished.txt
 
+source ../../Dispa-SET/.env/bin/activate
+
 # srun python reference.py
 # thus avoid allocating resources for this job
 sbatch --wait --output=slurm-outputs/$SIM_NAME/reference_%A.log launch-reference-job.sh

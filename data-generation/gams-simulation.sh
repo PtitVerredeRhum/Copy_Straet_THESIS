@@ -13,7 +13,8 @@
 #
 
 # export GAMSPATH=~/gams37.1_linux_x64_64_sfx
-export GAMSPATH=~/gams42.5_linux_x64_64_sfx
+F_HOME="$HOME/Test_Cloux"
+export GAMSPATH=$F_HOME/gams42.5_linux_x64_64_sfx
 
 cd simulations/LP-test/reference
 

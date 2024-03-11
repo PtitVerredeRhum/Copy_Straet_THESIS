@@ -32,7 +32,7 @@
 # Usage: sbatch --array=0-$n launch-simulation-jobs.sh <series_idx>
 
 LAUNCH_DIR=$(pwd)
-F_HOME="/home/ulg/thermlab/fstraet"
+F_HOME="$HOME/Test_Cloux"
 export GAMSPATH=$F_HOME/gams42.5_linux_x64_64_sfx
 
 BASE_DIR=$(python -c "from config import SIMULATIONS_DIR; print(SIMULATIONS_DIR)")

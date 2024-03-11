@@ -21,8 +21,7 @@ import pandas as pd
 
 from pyDOE import lhs
 
-sys.path.append(os.environ["HOME"] + os.sep + "Dispa-SET")
-CODE_PATH = os.environ["HOME"] + "work" + os.sep + "data-generation"
+sys.path.append(".." + os.sep + ".." + os.sep + "Dispa-SET")
 
 import dispaset as ds
 

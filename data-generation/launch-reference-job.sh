@@ -18,4 +18,6 @@
 #
 # Usage: sbatch launch-reference-job.sh
 
+source ../../Dispa-SET/.env/bin/activate
+
 srun python reference.py
