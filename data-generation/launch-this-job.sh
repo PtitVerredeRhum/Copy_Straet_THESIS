@@ -33,14 +33,14 @@
 
 LAUNCH_DIR=$(pwd)
 F_HOME="$HOME/Test_Cloux"
-export GAMSPATH=$F_HOME/gams42.5_linux_x64_64_sfx
+#export GAMSPATH=$F_HOME/gams42.5_linux_x64_64_sfx
 
 BASE_DIR=$(python -c "from config import SIMULATIONS_DIR; print(SIMULATIONS_DIR)")
 DATASET_NAME=$(python -c "from config import DATASET_NAME; print(DATASET_NAME)")
 
 # Load Python 3.9 and environment
-module load Python/3.9.6-GCCcore-11.2.0
-source $F_HOME/Dispa-SET/.env/bin/activate
+#module load Python/3.9.6-GCCcore-11.2.0
+#source $F_HOME/Dispa-SET/.env/bin/activate
 
 echo "Job ID: $SLURM_JOBID"
 echo "Job dir: $SLURM_SUBMIT_DIR"
