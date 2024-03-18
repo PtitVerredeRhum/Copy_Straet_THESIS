@@ -60,7 +60,7 @@ class ReferenceInfo(object):
             }, f, indent=4)
     
     def tolist(self):
-        return [self.peak_load, self.flex_units, self.slow_units, self.CF_wton, CF_wtof, self.CF_pv]
+        return [self.peak_load, self.flex_units, self.slow_units, self.CF_wton, self.CF_wtof, self.CF_pv]
 
 def build_reference(refinfo_path):
     """
