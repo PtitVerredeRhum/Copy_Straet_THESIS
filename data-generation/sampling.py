@@ -165,7 +165,7 @@ def prepare_simulation_files(sample, cur_folder):
     tmp = cur_folder + os.sep + "Inputstmp.gdx"
     data = ds.adjust_capacity(data, ('PHOT','SUN'),
                             value=peak_load*capacity_ratio*share_pv/CF_pv, singleunit=True,
-                            write_gdx=True, dest_path=cur_folder, temp_path=tmp)
+                            write_gdx=True, dest_path=cur_folder) #temp_path=tmp)
 
 if __name__ == "__main__":
     main()
