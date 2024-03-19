@@ -59,8 +59,8 @@ fi
 echo "Starting jobs serie $serie_idx in [0-$((total-1))],  $((serie_idx*series_size)) to $((serie_idx*series_size+max))"
 echo "Range [0-$max] submitted for series idx $serie_idx" >> $LOG_FILE
 #                           v-- ensures max 128 jobs simultaneously (so that we don't exceed 128 * 333 MB per simulation = 42GB, max is 110GB)
-ID=$(sbatch --array=0-$max%128 --output=slurm-outputs/$SIM_NAME/simulation_$serie_idx-%a.log --parsable one-per-sim.sh $serie_idx)
-# ID=$(sbatch --array=180-$max%150 --output=slurm-outputs/$SIM_NAME/simulation_$serie_idx-%a.log --parsable launch-simulation-jobs.sh $serie_idx)
+#ID=$(sbatch --array=0-$max%128 --output=slurm-outputs/$SIM_NAME/simulation_$serie_idx-%a.log --parsable one-per-sim.sh $serie_idx)
+ID=$(sbatch --array=180-$max%150 --output=slurm-outputs/$SIM_NAME/simulation_$serie_idx-%a.log --parsable launch-simulation-jobs.sh $serie_idx)
 
 # echo "Submitting with ${ID%%;*} as dependency, launch-job-series.sh $((serie_idx+1))"
 sbatch --dependency=afterok:${ID%%;*} launch-job-series.sh $((serie_idx+1))
