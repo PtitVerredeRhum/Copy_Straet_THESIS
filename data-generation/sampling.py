@@ -137,7 +137,7 @@ def prepare_simulation_files(sample, cur_folder):
         shutil.rmtree(cur_folder)
 
     refinfo = ReferenceInfo.deserialize(REFERENCE_INFO_FILE)
-    peak_load, flex_units, slow_units, CF_wton, CF_pv = refinfo.tolist()
+    peak_load, flex_units, slow_units, CF_wton, CF_wtof, CF_pv = refinfo.tolist()
     capacity_ratio, share_flex, share_sto, share_wind, share_pv, rNTC = sample
 
     if share_flex > 0.905:
