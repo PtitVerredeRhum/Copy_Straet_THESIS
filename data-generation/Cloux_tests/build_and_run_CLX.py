@@ -14,7 +14,13 @@ sys.path.append(os.path.abspath('..'))
 import dispaset as ds
 
 # Load the configuration file
-config = ds.load_config('../ConfigFiles/Config_CLX-MILP.xlsx')
+config = ds.load_config('ConfigFiles/Config_CLX-MILP.xlsx')
+
+# Parameters 
+config['SimulationDirectory'] = 'simulations/simu_cloux_slurm/1001_1030_MILP'
+config['SimulationType'] = 'Integer clustering' # 'LP clustered'
+config['StartDate'] = (2019, 10, 1, 0, 0, 0)
+config['StopDate'] = (2019, 10, 30, 0, 0, 0)
 
 # Build the simulation environment:
 SimData = ds.build_simulation(config)
