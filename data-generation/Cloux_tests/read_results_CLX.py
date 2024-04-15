@@ -14,11 +14,11 @@ import dispaset as ds
 
 # Load the inputs and the results of the simulation
 #inputs,results = ds.get_sim_results(path='../Simulations/simulation_test',cache=False)
-inputs,results = ds.get_sim_results(path='../simulations/simu_cloux',cache=False)
+inputs,results = ds.get_sim_results(path='../simulations/simu_cloux/0102_0702-LPCLUS',cache=False)
 
 # if needed, define the plotting range for the dispatch plot:
 import pandas as pd
-rng = pd.date_range(start='2019-01-01',end='2019-01-02',freq='h')
+rng = pd.date_range(start='2019-01-01',end='2019-01-07',freq='h')
 
 # Generate country-specific plots
 ds.plot_zone(inputs,results,rng=rng)
