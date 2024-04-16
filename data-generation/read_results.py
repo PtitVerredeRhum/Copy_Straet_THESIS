@@ -20,7 +20,8 @@ import pandas as pd
 
 from config import DATASET_NAME, SIMULATIONS_DIR, SAMPLES_CSV_NAME
 
-sys.path.append(os.path.abspath(".." + os.sep + ".."  + os.sep + "Dispa-SET"))
+#sys.path.append(os.path.abspath(".." + os.sep + ".."  + os.sep + "Dispa-SET"))
+sys.path.append(".." + os.sep + ".." + os.sep + "Dispa-SET")
 
 import dispaset as ds
 
