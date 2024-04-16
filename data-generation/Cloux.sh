@@ -3,12 +3,12 @@
 #SBATCH --mail-user=romain.cloux@student.uliege.be
 #SBATCH --mail-type=BEGIN,END
 #SBATCH --job-name=Dispa-SET-reference
-#SBATCH --time=0-05:00:00 # days-hh:mm:ss
+#SBATCH --time=3-00:00:00 # days-hh:mm:ss
 #
-#SBATCH --output=simulations/simu_cloux_slurm/reference_%A.txt
+#SBATCH --output=simulations/simu_cloux_slurm/ref_1y_LP_%A.txt
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=2  # python is not parallel
-#SBATCH --mem-per-cpu=16000 # megabytes
+#SBATCH --cpus-per-task=4  # python is not parallel
+#SBATCH --mem-per-cpu=32000 # megabytes
 #SBATCH --partition=batch
 
 # Starts the reference job on the cluster.
