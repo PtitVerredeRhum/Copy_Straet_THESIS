@@ -186,7 +186,7 @@ def read_single(path, gams_error=0):
     print(s)
 
     dataset_path = SIMULATIONS_DIR + os.sep + DATASET_NAME
-    # pd.DataFrame(row).T.to_csv(dataset_path, index=False, header=False, mode="a")
+    pd.DataFrame(row).T.to_csv(dataset_path, index=False, header=False, mode="a")
 
 
 def main():
