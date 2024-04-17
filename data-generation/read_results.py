@@ -130,7 +130,7 @@ def read_data(path):
     row.loc['TotalGeneration_[TWh]'] = total_generation / 1E6
     row.loc['ShareResGeneration_[%]'] = 100 * total_vres / total_generation
     #row.loc['MaxLoadSheddingShare_[%]'] = 100 * zone_results['MaxShedLoadShare']
-
+    row.loc['MaxLoadSheddingShare_[%]'] = np.nan
     cf = {}
     for fuel in ["GAS", "NUC", "WAT", "WIN", "SUN"]:
         cf[fuel] = fuel_power[fuel].sum() / (capacities["PowerCapacity"][fuel].sum() * 8760)
