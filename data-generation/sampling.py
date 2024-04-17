@@ -37,7 +37,7 @@ except IndexError:
 
 # from Carla's work
 capacity_ratio_range = (0.5, 1.8)
-share_flex_range     = (0.01, 0.99)
+share_flex_range     = (0.01, 0.9)
 share_storate_range  = (0, 0.5)
 share_wind_range     = (0, 0.5)
 share_pv_range       = (0, 0.5) 
@@ -140,9 +140,9 @@ def prepare_simulation_files(sample, cur_folder):
     peak_load, flex_units, slow_units, CF_wton, CF_wtof, CF_pv = refinfo.tolist()
     capacity_ratio, share_flex, share_sto, share_wind, share_pv, rNTC = sample
 
-    if share_flex > 0.905:
-        print("Killing stalling simulation at the root")
-        return 1
+    #if share_flex > 0.905:
+    #    print("Killing stalling simulation at the root")
+    #    return 1
 
     # in the first iteration, we load the input data from the original simulation directory:
     data = ds.adjust_capacity(REFERENCE_SIMULATION_DIR, ('BATS','OTH'), singleunit=True, 

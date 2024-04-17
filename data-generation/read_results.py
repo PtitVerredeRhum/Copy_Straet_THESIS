@@ -129,7 +129,7 @@ def read_data(path):
     row.loc['CurtailmentToRESGeneration_[%]'] = 100 * row.loc['Curtailment_[TWh]'] / total_vres
     row.loc['TotalGeneration_[TWh]'] = total_generation / 1E6
     row.loc['ShareResGeneration_[%]'] = 100 * total_vres / total_generation
-    row.loc['MaxLoadSheddingShare_[%]'] = 100 * zone_results['MaxShedLoadShare']
+    #row.loc['MaxLoadSheddingShare_[%]'] = 100 * zone_results['MaxShedLoadShare']
 
     cf = {}
     for fuel in ["GAS", "NUC", "WAT", "WIN", "SUN"]:
