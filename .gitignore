@@ -169,4 +169,7 @@ report/**
 !report/resources/*.tex
 !report/resources/*.bib
 
+# Bug avec permission denied du coup j'ignore : CLOUX
+data-generation\launch-job-series.sh
+
 nn/models/**
