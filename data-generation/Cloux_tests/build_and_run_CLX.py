@@ -17,7 +17,7 @@ import dispaset as ds
 config = ds.load_config('ConfigFiles/Config_CLX-MILP.xlsx')
 
 # Parameters 
-config['SimulationDirectory'] = 'simulations/simu_cloux_slurm/ref_1year_MILP'
+config['SimulationDirectory'] = 'simulations/simu_cloux_slurm/ref_1year_MILP_16CPU'
 config['SimulationType'] = 'Integer clustering' # 'LP clustered'
 config['StartDate'] = (2019, 1, 1, 0, 0, 0)
 config['StopDate'] = (2019, 12, 31, 0, 0, 0)
