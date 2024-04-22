@@ -12,18 +12,132 @@ sys.path.append(os.path.abspath('..'))
 
 # Import Dispa-SET
 import dispaset as ds
+import pandas as pd
+
+
 
 # Load the configuration file
-config = ds.load_config('ConfigFiles/Config_CLX-MILP.xlsx')
+config = ds.load_config('../ConfigFiles/Config_CLX-MILP.xlsx')
 
 # Parameters 
 config['SimulationDirectory'] = 'simulations/simu_cloux_slurm/ref_1year_MILP_16CPU'
 config['SimulationType'] = 'Integer clustering' # 'LP clustered'
 config['StartDate'] = (2019, 1, 1, 0, 0, 0)
-config['StopDate'] = (2019, 12, 31, 0, 0, 0)
+config['StopDate'] = (2019, 1, 3, 0, 0, 0)
 
 # Build the simulation environment:
-SimData = ds.build_simulation(config)
+sim_data = ds.build_simulation(config)
+
+
+# CALCUL SOME IMPORTANT VALUES
+print("#-#-#-#-#-#-# Build simulation end")
+
+# Extract some significant values from the config:
+peak_load = sim_data["parameters"]["Demand"]["val"][0].sum(axis=0).max()
+
+availability_factors = sim_data["parameters"]["AvailabilityFactor"]["val"].mean(axis=1)
+af_df = pd.DataFrame(availability_factors, index=sim_data["sets"]["au"], columns=["availability_factor_avg"])
+
+CF_pv = af_df.filter(like="PHOT", axis=0).mean().loc["availability_factor_avg"]
+CF_wton_list0 = af_df.filter(like="WindOn", axis=0)
+CF_wton_list1 = af_df.filter(like="WTON", axis=0)
+CF_wton_list = pd.concat([CF_wton_list0, CF_wton_list1])
+CF_wton = CF_wton_list.mean().loc["availability_factor_avg"]
+#CF_wtof = af_df.filter(like="WTOF", axis=0).mean().loc("availability_factor_avg")
+CF_wtof = af_df.filter(like="WTOF", axis=0).mean().loc["availability_factor_avg"]
+#CF_wtof = 3.14
+
+units = sim_data["units"]
+flex_units = units[ units.Fuel.isin( ['GAS','HRD','OIL','BIO','LIG','PEA','NUC','GEO'] ) & (units.PartLoadMin < 0.5) & (units.TimeUpMinimum <5)  & (units.RampUpRate > 0.01)  ].index
+slow_units = units[ units.Fuel.isin( ['GAS','HRD','OIL','BIO','LIG','PEA','NUC','GEO'] ) & ((units.PartLoadMin >= 0.5) | (units.TimeUpMinimum >=5)  | (units.RampUpRate <= 0.01)   )  ].index
+sto_units  = units[ units.Fuel.isin( ['OTH'] ) ].index
+sto_units_wat  = units[ units.Fuel.isin( ['WAT'] ) ].index
+wind_units = units[ units.Fuel.isin( ['WIN'] ) ].index 
+pv_units   = units[ units.Technology == 'PHOT'].index   
+hror_units = units[ units.Technology == 'HROR'].index   
+coal_units = units[units.Fuel.isin(["HRD"])].index
+variable_costs = sim_data["parameters"]["CostVariable"]["val"]
+for u in coal_units:
+    idx = coal_units.get_loc(u)
+    variable_cost = variable_costs[idx].mean()
+    print(f"Variable cost for {u} (idx: {idx}): {variable_cost}")
+
+ref = {}
+ref['overcapacity'] = (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum() + units.PowerCapacity[sto_units].sum()) / peak_load
+ref['share_flex'] =   units.PowerCapacity[flex_units].sum() / (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum())
+ref['share_sto'] =    units.PowerCapacity[sto_units].sum() / peak_load
+#ref['share_sto'] =    (units.PowerCapacity[sto_units_wat].sum() + units.PowerCapacity[sto_units].sum()) / peak_load
+ref['share_wind'] =   units.PowerCapacity[wind_units].sum() / peak_load * CF_wton
+ref['share_pv'] =     units.PowerCapacity[pv_units].sum() / peak_load * CF_pv
+
+
+# Computing rNTCs
+h_mean = sim_data['parameters']['FlowMaximum']['val'].mean(axis=1)
+NTC = pd.DataFrame(h_mean, index=sim_data['sets']['l'], columns=['FlowMax_hmean']).groupby(level=0).sum()
+
+countries = sim_data['sets']['n']
+max_load = sim_data['parameters']['Demand']['val'][0].max(axis=1)
+    
+peak_load_df = pd.DataFrame(max_load, index=countries, columns=['max_load'])
+    
+for c in countries:
+    ntc = 0
+    for l in NTC.index:
+        if c in l: 
+            ntc += NTC.loc[l,'FlowMax_hmean']
+    peak_load_df.loc[c,'rNTC'] = ntc / 2 / peak_load_df.loc[c,'max_load']
+
+peak_load_df['weigthed'] = peak_load_df['max_load'] * peak_load_df['rNTC'] / peak_load_df['max_load'].sum()
+
+ref['rNTC'] = peak_load_df['weigthed'].sum()     
+
+#refinfo = ReferenceInfo.from_values(peak_load, flex_units, slow_units, CF_wton, CF_wtof, CF_pv, ref)
+#refinfo.serialize(refinfo_path)
+
+print(af_df.filter(like="WTOF", axis=0))
+print("----------------------------------------------------")
+
+print("CF WTON: ", CF_wton)
+print("CF WTOF: ", CF_wtof)
+print(af_df.filter(like="WTOF", axis=0).mean())
+print("CF PV: ", CF_pv)
+print("peak load: ", peak_load)
+
+CF_pv2_list = af_df.filter(like="PHOT", axis=0)
+CF_pv2_list[CF_pv2_list["availability_factor_avg"].ne(0)].mean().loc["availability_factor_avg"]
+
+CF_wton_list = af_df.filter(like="WTON", axis=0)
+CF_wton_list[CF_wton_list["availability_factor_avg"].ne(0)].mean().loc["availability_factor_avg"]
+
+CF_wtof_list = af_df.filter(like="WTOF", axis=0)
+CF_wtof_list[CF_wtof_list["availability_factor_avg"].ne(0)].mean().loc["availability_factor_avg"]
+
+
+######################################################################################################
+######################################################################################################
+
+capacity_ratio = 1.2
+tmp = os.environ["GLOBALSCRATCH"] + os.sep + "Temp_folder"  + os.sep + "Inputstmp.gdx"
+# ADJUST STORAGE:
+data = ds.adjust_capacity(sim_data, ('BATS','OTH'), singleunit=True, 
+                            value=peak_load*0.75, write_gdx=True, dest_path=config['SimulationDirectory'])
+#data = ds.adjust_capacity(data, ('HPHS','WAT'), singleunit=True, 
+#                            value=peak_load*0.75)
+
+# ADJUST WIND AND PV :
+data = ds.adjust_capacity(sim_data, ('WTON','WIN'),
+                        value=peak_load*capacity_ratio*0.3/CF_wton, singleunit=True)
+data = ds.adjust_capacity(data, ('PHOT','SUN'),
+                        value=peak_load*capacity_ratio*0.1/CF_pv, singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
+
+# ADJUST FLEX
+data = ds.adjust_flexibility(sim_data, flex_units, slow_units, 0.66, singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
+
+# ADJUST NTC
+data = ds.adjust_ntc(sim_data, value=0.5, write_gdx=True, dest_path=config['SimulationDirectory'])
+
+# ADJUST CAPACITY_RATIO
+# ...? with PV and WInd?
 
 # Solve using GAMS:
 r = ds.solve_GAMS(config['SimulationDirectory'], config['GAMS_folder'])
