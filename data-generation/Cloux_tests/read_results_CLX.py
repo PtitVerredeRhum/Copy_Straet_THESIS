@@ -17,7 +17,7 @@ import pandas as pd
 
 # Load the inputs and the results of the simulation
 #inputs,results = ds.get_sim_results(path='../Simulations/simulation_test',cache=False)
-inputs,results = ds.get_sim_results(path='../simulations/simu_cloux/1001_1030_LP',cache=False)
+inputs,results = ds.get_sim_results(path='../simulations/simu_cloux/adj_tst_1m_LP_16CPU_1001_1030',cache=False)
 
 # POST PROCESSING !!! #############################################################################################
 
@@ -40,8 +40,11 @@ CF_wtof = af_df.filter(like="WTOF", axis=0).mean().loc["availability_factor_avg"
 units = inputs["units"]
 flex_units = units[ units.Fuel.isin( ['GAS','HRD','OIL','BIO','LIG','PEA','NUC','GEO'] ) & (units.PartLoadMin < 0.5) & (units.TimeUpMinimum <5)  & (units.RampUpRate > 0.01)  ].index
 slow_units = units[ units.Fuel.isin( ['GAS','HRD','OIL','BIO','LIG','PEA','NUC','GEO'] ) & ((units.PartLoadMin >= 0.5) | (units.TimeUpMinimum >=5)  | (units.RampUpRate <= 0.01)   )  ].index
-sto_units  = units[ units.Fuel.isin( ['OTH'] ) ].index
-wind_units = units[ units.Fuel.isin( ['WIN'] ) ].index 
+#sto_units  = units[ units.Fuel.isin( ['OTH'] ) ].index
+sto_units  = units[ units.Technology == 'BATS' ].index
+#wind_units = units[ units.Fuel.isin( ['WIN'] ) ].index 
+windon_units = units[ units.Technology == 'WTON' ].index 
+windoff_units = units[ units.Technology == 'WTOF' ].index 
 pv_units   = units[ units.Technology == 'PHOT'].index   
 hror_units = units[ units.Technology == 'HROR'].index   
 coal_units = units[units.Fuel.isin(["HRD"])].index
@@ -54,7 +57,8 @@ ref = {}
 ref['overcapacity'] = (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum() + units.PowerCapacity[sto_units].sum()) / peak_load
 ref['share_flex'] =   units.PowerCapacity[flex_units].sum() / (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum())
 ref['share_sto'] =    units.PowerCapacity[sto_units].sum() / peak_load
-ref['share_wind'] =   units.PowerCapacity[wind_units].sum() / peak_load * CF_wton
+ref['share_wind_on'] =   units.PowerCapacity[windon_units].sum() / peak_load * CF_wton
+ref['share_wind_off'] =   units.PowerCapacity[windoff_units].sum() / peak_load * CF_wtof
 ref['share_pv'] =     units.PowerCapacity[pv_units].sum() / peak_load * CF_pv
 
 
@@ -102,24 +106,15 @@ CF_wtof_list[CF_wtof_list["availability_factor_avg"].ne(0)].mean().loc["availabi
 
 
 
-
-
-
-
-
-
-
-
-
 # PLOT !!! #############################################################################################
 # PLOT !!! #############################################################################################
 
 # if needed, define the plotting range for the dispatch plot:
 import pandas as pd
-rng = pd.date_range(start='2019-01-01',end='2019-01-07',freq='h')
+rng = pd.date_range(start='2019-10-01',end='2019-10-30',freq='h')
 
 # Generate country-specific plots
-ds.plot_zone(inputs,results,rng=rng)
+ds.plot_zone(inputs,results, z='FR', z_th='FR_th', rng=rng)
 
 # # Bar plot with the installed capacities in all countries:
 # cap = ds.plot_zone_capacities(inputs,results)
