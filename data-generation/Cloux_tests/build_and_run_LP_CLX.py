@@ -14,7 +14,7 @@ sys.path.append(os.path.abspath('..'))
 import dispaset as ds
 import pandas as pd
 # Load the configuration file
-config = ds.load_config('ConfigFiles/Config_CLX-MILP.xlsx')
+config = ds.load_config('../ConfigFiles/Config_CLX-MILP.xlsx')
 
 # Parameters 
 config['SimulationDirectory'] = 'simulations/simu_cloux_slurm/adj_VRES_1001-1030_LP'
