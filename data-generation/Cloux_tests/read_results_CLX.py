@@ -17,7 +17,7 @@ import pandas as pd
 
 # Load the inputs and the results of the simulation
 #inputs,results = ds.get_sim_results(path='../Simulations/simulation_test',cache=False)
-inputs,results = ds.get_sim_results(path='../simulations/simu_cloux/adj_tst_1m_LP_16CPU_1001_1030',cache=False)
+inputs,results = ds.get_sim_results(path='../simulations/simu_cloux/1001_1030_LP',cache=False)
 
 # POST PROCESSING !!! #############################################################################################
 
@@ -102,6 +102,14 @@ CF_wton_list[CF_wton_list["availability_factor_avg"].ne(0)].mean().loc["availabi
 
 CF_wtof_list = af_df.filter(like="WTOF", axis=0)
 CF_wtof_list[CF_wtof_list["availability_factor_avg"].ne(0)].mean().loc["availability_factor_avg"]
+
+print('CR: ', ref['overcapacity'])
+print('flex: ', ref['share_flex'])
+print('sto: ', ref['share_sto'])
+print('on: ', ref['share_wind_on'])
+print('off: ', ref['share_wind_off'])
+print('pv: ', ref['share_pv'])
+print('NTC: ', ref['rNTC'])
 
 
 
