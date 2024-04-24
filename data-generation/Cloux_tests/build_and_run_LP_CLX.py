@@ -17,16 +17,16 @@ import pandas as pd
 config = ds.load_config('ConfigFiles/Config_CLX-MILP.xlsx')
 
 # Parameters 
-config['SimulationDirectory'] = 'simulations/simu_cloux_slurm/ref_1year_LP_16CPU'
+config['SimulationDirectory'] = 'simulations/simu_cloux_slurm/adj_VRES_1001-1030_LP'
 config['SimulationType'] = 'LP clustered' #'Integer clustering' # 'LP clustered'
-config['StartDate'] = (2019, 1, 1, 0, 0, 0)
-config['StopDate'] = (2019, 12, 31, 0, 0, 0)
+config['StartDate'] = (2019, 10, 1, 0, 0, 0)
+config['StopDate'] = (2019, 10, 30, 0, 0, 0)
 
-adj_sto = True 
+adj_sto = False 
 adj_ren = True
 adj_flex = False
-ajd_ntc = True
-adj_cr = True
+ajd_ntc = False
+adj_cr = False
 
 # Build the simulation environment:
 sim_data = ds.build_simulation(config)
@@ -134,17 +134,17 @@ if adj_sto :
 if  adj_ren :   
     # ADJUST WIND AND PV :
     data = ds.adjust_capacity(sim_data, ('WTON','WIN'),
-                            value=peak_load*0.3/CF_wton, singleunit=True)
+                            value=peak_load*0.065/CF_wton, singleunit=True)
     data = ds.adjust_capacity(data, ('WTOF','WIN'),
                             value=peak_load*0.3/CF_wtof, singleunit=True)
     data = ds.adjust_capacity(data, ('PHOT','SUN'),
-                            value=peak_load*0.1/CF_pv, singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
+                            value=peak_load*0.15/CF_pv, singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
 if  adj_flex : 
     # ADJUST FLEX
-    data = ds.adjust_flexibility(sim_data, flex_units, slow_units, 0.66, singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
+    data = ds.adjust_flexibility(sim_data, flex_units, slow_units, 0.8, singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
 if ajd_ntc :   
     # ADJUST NTC
-    data = ds.adjust_ntc(sim_data, value=0.5, write_gdx=True, dest_path=config['SimulationDirectory'])
+    data = ds.adjust_ntc(sim_data, value=0.64, write_gdx=True, dest_path=config['SimulationDirectory'])
 if adj_cr :   
     # ADJUST CAPACITY_RATIO
     data = ds.adjust_unit_capacity(sim_data, flex_units, value=1.0*peak_load - (units.PowerCapacity[slow_units].sum() + units.PowerCapacity[sto_units].sum()), singleunit=True)

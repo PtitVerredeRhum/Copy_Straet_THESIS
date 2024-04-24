@@ -2,10 +2,10 @@
 #
 #SBATCH --mail-user=romain.cloux@student.uliege.be
 #SBATCH --mail-type=BEGIN,END
-#SBATCH --job-name=Dispa-SET-reference_LP
-#SBATCH --time=1-23:55:00 # days-hh:mm:ss
+#SBATCH --job-name=Dispa-SET-adj_test_LP
+#SBATCH --time=0-2:00:00 # days-hh:mm:ss
 #
-#SBATCH --output=simulations/simu_cloux_slurm/ref_1y_LP_16CPU_%A.txt
+#SBATCH --output=simulations/simu_cloux_slurm/adj_VRES_1001-1030_LP_%A.txt
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16  # python is not parallel
 #SBATCH --mem-per-cpu=8000 # megabytes
