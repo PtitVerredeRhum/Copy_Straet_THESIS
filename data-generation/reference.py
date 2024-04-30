@@ -60,7 +60,7 @@ class ReferenceInfo(object):
             }, f, indent=4)
     
     def tolist(self):
-        return [self.peak_load, self.flex_units, self.slow_units, self.CF_wton, self.CF_wtof, self.CF_pv]
+        return [self.peak_load, self.flex_units, self.slow_units, self.CF_wton, self.CF_wtof, self.CF_pv, self.ref_values]
 
 def build_reference(refinfo_path):
     """
@@ -79,12 +79,12 @@ def build_reference(refinfo_path):
     sim_data = ds.build_simulation(config)
     print("#-#-#-#-#-#-# Build simulation end")
 
-    # Extract some significant values from the config:
+     # Extract some significant values from the config:
     peak_load = sim_data["parameters"]["Demand"]["val"][0].sum(axis=0).max()
-
+    
     availability_factors = sim_data["parameters"]["AvailabilityFactor"]["val"].mean(axis=1)
     af_df = pd.DataFrame(availability_factors, index=sim_data["sets"]["au"], columns=["availability_factor_avg"])
-
+    
     CF_pv = af_df.filter(like="PHOT", axis=0).mean().loc["availability_factor_avg"]
     CF_wton_list0 = af_df.filter(like="WindOn", axis=0)
     CF_wton_list1 = af_df.filter(like="WTON", axis=0)
@@ -93,12 +93,15 @@ def build_reference(refinfo_path):
     #CF_wtof = af_df.filter(like="WTOF", axis=0).mean().loc("availability_factor_avg")
     CF_wtof = af_df.filter(like="WTOF", axis=0).mean().loc["availability_factor_avg"]
     #CF_wtof = 3.14
-
+    
     units = sim_data["units"]
     flex_units = units[ units.Fuel.isin( ['GAS','HRD','OIL','BIO','LIG','PEA','NUC','GEO'] ) & (units.PartLoadMin < 0.5) & (units.TimeUpMinimum <5)  & (units.RampUpRate > 0.01)  ].index
     slow_units = units[ units.Fuel.isin( ['GAS','HRD','OIL','BIO','LIG','PEA','NUC','GEO'] ) & ((units.PartLoadMin >= 0.5) | (units.TimeUpMinimum >=5)  | (units.RampUpRate <= 0.01)   )  ].index
-    sto_units  = units[ units.Fuel.isin( ['OTH'] ) ].index
-    wind_units = units[ units.Fuel.isin( ['WIN'] ) ].index 
+    #sto_units  = units[ units.Fuel.isin( ['OTH'] ) ].index
+    sto_units  = units[ units.Technology == 'BATS' ].index
+    #wind_units = units[ units.Fuel.isin( ['WIN'] ) ].index 
+    windon_units = units[ units.Technology == 'WTON' ].index 
+    windoff_units = units[ units.Technology == 'WTOF' ].index 
     pv_units   = units[ units.Technology == 'PHOT'].index   
     hror_units = units[ units.Technology == 'HROR'].index   
     coal_units = units[units.Fuel.isin(["HRD"])].index
@@ -107,55 +110,61 @@ def build_reference(refinfo_path):
         idx = coal_units.get_loc(u)
         variable_cost = variable_costs[idx].mean()
         print(f"Variable cost for {u} (idx: {idx}): {variable_cost}")
-
     ref = {}
     ref['overcapacity'] = (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum() + units.PowerCapacity[sto_units].sum()) / peak_load
     ref['share_flex'] =   units.PowerCapacity[flex_units].sum() / (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum())
     ref['share_sto'] =    units.PowerCapacity[sto_units].sum() / peak_load
-    ref['share_wind'] =   units.PowerCapacity[wind_units].sum() / peak_load * CF_wton
+    ref['share_wind_on'] =   units.PowerCapacity[windon_units].sum() / peak_load * CF_wton
+    ref['share_wind_off'] =   units.PowerCapacity[windoff_units].sum() / peak_load * CF_wtof
+    ref['share_wind'] =   ((units.PowerCapacity[windon_units].sum()* CF_wton) + (units.PowerCapacity[windoff_units].sum()* CF_wtof)) / peak_load 
     ref['share_pv'] =     units.PowerCapacity[pv_units].sum() / peak_load * CF_pv
-
-
+    ref['slow/peak'] = units.PowerCapacity[slow_units].sum()/peak_load
+    ref['flex/peak'] = units.PowerCapacity[flex_units].sum()/peak_load
+    
+    
+    
     # Computing rNTCs
     h_mean = sim_data['parameters']['FlowMaximum']['val'].mean(axis=1)
     NTC = pd.DataFrame(h_mean, index=sim_data['sets']['l'], columns=['FlowMax_hmean']).groupby(level=0).sum()
-
+    
     countries = sim_data['sets']['n']
     max_load = sim_data['parameters']['Demand']['val'][0].max(axis=1)
-        
+         
     peak_load_df = pd.DataFrame(max_load, index=countries, columns=['max_load'])
-        
+         
     for c in countries:
         ntc = 0
         for l in NTC.index:
             if c in l: 
                 ntc += NTC.loc[l,'FlowMax_hmean']
         peak_load_df.loc[c,'rNTC'] = ntc / 2 / peak_load_df.loc[c,'max_load']
-
+    
     peak_load_df['weigthed'] = peak_load_df['max_load'] * peak_load_df['rNTC'] / peak_load_df['max_load'].sum()
-
+    
     ref['rNTC'] = peak_load_df['weigthed'].sum()     
-
+    
     refinfo = ReferenceInfo.from_values(peak_load, flex_units, slow_units, CF_wton, CF_wtof, CF_pv, ref)
     refinfo.serialize(refinfo_path)
-
+    
     print(af_df.filter(like="WTOF", axis=0))
     print("----------------------------------------------------")
-
+    
     print("CF WTON: ", CF_wton)
     print("CF WTOF: ", CF_wtof)
     print(af_df.filter(like="WTOF", axis=0).mean())
     print("CF PV: ", CF_pv)
     print("peak load: ", peak_load)
-
+    
     CF_pv2_list = af_df.filter(like="PHOT", axis=0)
     CF_pv2_list[CF_pv2_list["availability_factor_avg"].ne(0)].mean().loc["availability_factor_avg"]
-
+    
     CF_wton_list = af_df.filter(like="WTON", axis=0)
     CF_wton_list[CF_wton_list["availability_factor_avg"].ne(0)].mean().loc["availability_factor_avg"]
-
+    
     CF_wtof_list = af_df.filter(like="WTOF", axis=0)
     CF_wtof_list[CF_wtof_list["availability_factor_avg"].ne(0)].mean().loc["availability_factor_avg"]
+
+
 
 if __name__ == "__main__":
     print("Building reference simulation")

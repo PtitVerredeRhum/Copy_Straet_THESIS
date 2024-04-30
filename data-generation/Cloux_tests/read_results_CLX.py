@@ -6,7 +6,7 @@ Minimalist example file showing how to read the results of a Dispa-SET run
 """
 
 # Add the root folder of Dispa-SET to the path so that the library can be loaded:
-import sys,os
+import sys,os, re
 sys.path.append(os.path.abspath('..'))
 
 # Import Dispa-SET
@@ -14,15 +14,12 @@ import dispaset as ds
 
 #IMPORT
 import pandas as pd
-
+import numpy as np
 # Load the inputs and the results of the simulation
 #inputs,results = ds.get_sim_results(path='../Simulations/simulation_test',cache=False)
-inputs,results = ds.get_sim_results(path='../simulations/simu_cloux/1001_1030_LP',cache=False)
+path='../simulations/simu_cloux/1001_1030_LP' #'adj_VRES_1001-1030_LP' 
+inputs,results = ds.get_sim_results(path,cache=False)
 
-# POST PROCESSING !!! #############################################################################################
-
-
- # Extract some significant values from the config:
 peak_load = inputs["parameters"]["Demand"]["val"][0].sum(axis=0).max()
 
 availability_factors = inputs["parameters"]["AvailabilityFactor"]["val"].mean(axis=1)
@@ -61,7 +58,6 @@ ref['share_wind_on'] =   units.PowerCapacity[windon_units].sum() / peak_load * C
 ref['share_wind_off'] =   units.PowerCapacity[windoff_units].sum() / peak_load * CF_wtof
 ref['share_pv'] =     units.PowerCapacity[pv_units].sum() / peak_load * CF_pv
 
-
 # Computing rNTCs
 h_mean = inputs['parameters']['FlowMaximum']['val'].mean(axis=1)
 NTC = pd.DataFrame(h_mean, index=inputs['sets']['l'], columns=['FlowMax_hmean']).groupby(level=0).sum()
@@ -80,37 +76,97 @@ for c in countries:
 
 peak_load_df['weigthed'] = peak_load_df['max_load'] * peak_load_df['rNTC'] / peak_load_df['max_load'].sum()
 
-ref['rNTC'] = peak_load_df['weigthed'].sum()     
+ref['rNTC'] = peak_load_df['weigthed'].sum()  
 
-#refinfo = ReferenceInfo.from_values(peak_load, flex_units, slow_units, CF_wton, CF_wtof, CF_pv, ref)
-#refinfo.serialize(refinfo_path)
 
-print(af_df.filter(like="WTOF", axis=0))
-print("----------------------------------------------------")
 
-print("CF WTON: ", CF_wton)
-print("CF WTOF: ", CF_wtof)
-print(af_df.filter(like="WTOF", axis=0).mean())
-print("CF PV: ", CF_pv)
-print("peak load: ", peak_load)
 
-CF_pv2_list = af_df.filter(like="PHOT", axis=0)
-CF_pv2_list[CF_pv2_list["availability_factor_avg"].ne(0)].mean().loc["availability_factor_avg"]
 
-CF_wton_list = af_df.filter(like="WTON", axis=0)
-CF_wton_list[CF_wton_list["availability_factor_avg"].ne(0)].mean().loc["availability_factor_avg"]
+# POST PROCESSING !!! #############################################################################################
 
-CF_wtof_list = af_df.filter(like="WTOF", axis=0)
-CF_wtof_list[CF_wtof_list["availability_factor_avg"].ne(0)].mean().loc["availability_factor_avg"]
+fuel_power = ds.aggregate_by_fuel(results["OutputPower"], inputs, SpecifyFuels=None)
+capacities = ds.plot_zone_capacities(inputs, results, plot=False)
 
-print('CR: ', ref['overcapacity'])
-print('flex: ', ref['share_flex'])
-print('sto: ', ref['share_sto'])
-print('on: ', ref['share_wind_on'])
-print('off: ', ref['share_wind_off'])
-print('pv: ', ref['share_pv'])
-print('NTC: ', ref['rNTC'])
+zone_results = ds.get_result_analysis(inputs, results)
 
+lost_load = 0
+for key in ["LostLoad_MaxPower", "LostLoad_MinPower", "LostLoad_2D", "LostLoad_2U", "LostLoad_3U", "LostLoad_RampDown", "LostLoad_RampUp"]:
+    if key in results:
+        lost_load += results[key].sum().sum()
+
+total_generation = results["OutputPower"].sum().sum()
+
+# read pd.Series from csv
+# then add elements to the row
+#m = re.search("/sim-(\d+)_", path)
+# m[0]: entire match, m[1]: first group
+#sample_index = int(m[1])
+#samples = pd.read_csv(SIMULATIONS_DIR + os.sep + SAMPLES_CSV_NAME, index_col=0)
+
+params = inputs["parameters"]
+afs = params["AvailabilityFactor"]
+
+all_af = pd.DataFrame(np.transpose(afs["val"]),
+                      columns=inputs["sets"]["au"], 
+                      index=inputs["sets"]["h"])
+af = ds.filter_by_tech_list(all_af, inputs, ["HROR", "PHOT", "WTON", "WTOF"])
+
+all_pc = pd.DataFrame(np.expand_dims(params["PowerCapacity"]["val"], axis=0),
+                      columns=inputs["sets"]["au"],
+                      index=["val"])
+pc = ds.filter_by_tech_list(all_pc, inputs, ["HROR", "PHOT", "WTON", "WTOF"])
+
+En = af.mean() * pc
+Energy2 = af.dot(pc.transpose())
+total_vres = 365 * 24 * En.sum().sum() / 1E6
+total_vres2 = 365 * 24 * Energy2.sum() / 1E6
+
+print("af mean desc")
+print(af.mean().describe())
+print(af.columns)
+print(len(af.index))
+
+print("pc desc")
+print(pc.describe())
+print(pc.columns)
+print(len(pc.index))
+
+print("En")
+print(En.describe())
+print(En.columns)
+print(len(En.index))
+
+#row = samples.loc[sample_index,:]
+#print(f"Read single index:  {sample_index}")
+
+zone_results["Cost_[E/MWh]"] = zone_results["Cost_kwh"]
+zone_results["Congestion_[h]"] = sum(zone_results["Congestion"].values())
+
+zone_results["PeakLoad_[MW]"] = zone_results["PeakLoad"]
+
+zone_results['MaxCurtailment_[MW]'] = zone_results['MaxCurtailment']
+zone_results['MaxLoadShedding_[MW]'] = zone_results['MaxShedLoad']
+
+zone_results['Demand_[TWh]'] = zone_results['TotalLoad'] / 1E6
+zone_results['NetImports_[TWh]']= zone_results['NetImports'] / 1E6
+
+zone_results['Curtailment_[TWh]'] = zone_results['Curtailment'] / 1E6
+zone_results['Shedding_[TWh]'] = zone_results['ShedLoad'] / 1E6
+zone_results['LostLoad_[TWh]'] = lost_load / 1E6
+
+zone_results['MaxRESGeneration_[TWh]'] = total_vres2
+zone_results['CurtailmentToRESGeneration_[%]'] = 100 * zone_results['Curtailment_[TWh]'] / total_vres2
+zone_results['TotalGeneration_[TWh]'] = total_generation / 1E6
+zone_results['ShareResGeneration_[%]'] = 100 * total_vres2 / total_generation
+#row.loc['MaxLoadSheddingShare_[%]'] = 100 * zone_results['MaxShedLoadShare']
+zone_results['MaxLoadSheddingShare_[%]'] = 0
+cf = {}
+#for fuel in ["GAS", "NUC", "WAT", "WIN", "SUN"]:
+#    cf[fuel] = fuel_power[fuel].sum() / (capacities["PowerCapacity"][fuel].sum() * 8760)
+#    keyname = "CF_" + fuel.lower()
+#    row.loc[keyname] = cf[fuel]
+
+#print("Curtailment to RES generation: ", row.loc['CurtailmentToRESGeneration_[%]'])
 
 
 
@@ -119,35 +175,37 @@ print('NTC: ', ref['rNTC'])
 
 # if needed, define the plotting range for the dispatch plot:
 import pandas as pd
-rng = pd.date_range(start='2019-10-01',end='2019-10-30',freq='h')
+rng = pd.date_range(start='2019-10-09',end='2019-10-25',freq='h')
 
 # Generate country-specific plots
-ds.plot_zone(inputs,results, z='FR', z_th='FR_th', rng=rng)
+ds.plot_zone(inputs,results, z='UK', z_th='UK_th', rng=rng)
 
-# # Bar plot with the installed capacities in all countries:
-# cap = ds.plot_zone_capacities(inputs,results)
+#ds.plot_zone(inputs,results, z='DE', z_th='DE_th', rng=rng)
 
-# # Bar plot with installed storage capacity
-# #sto = ds.plot_tech_cap(inputs)
+# Bar plot with the installed capacities in all countries:
+#cap = ds.plot_zone_capacities(inputs,results)
 
-# # Violin plot for CO2 emissions
-# ds.plot_co2(inputs, results, figsize=(9, 6), width=0.9)
+# Bar plot with installed storage capacity
+#sto = ds.plot_tech_cap(inputs)
 
-# # Bar plot with the energy balances in all countries:
-# ds.plot_energy_zone_fuel(inputs,results,ds.get_indicators_powerplant(inputs,results))
+# Violin plot for CO2 emissions
+#ds.plot_co2(inputs, results, figsize=(9, 6), width=0.9)
 
-# # Analyse the results for each country and provide quantitative indicators:
-# r = ds.get_result_analysis(inputs,results)
+# Bar plot with the energy balances in all countries:
+#ds.plot_energy_zone_fuel(inputs,results,ds.get_indicators_powerplant(inputs,results))
 
-# # Plot the reservoir levels
-# #ds.storage_levels(inputs,results)
-# #ds.plot_storage_levels(inputs,results,'NO')
+# Analyse the results for each country and provide quantitative indicators:
+#r = ds.get_result_analysis(inputs,results)
 
-# # Analyze power flow tracing
-# pft, pft_prct = ds.plot_power_flow_tracing_matrix(inputs, results, cmap="magma_r", figsize=(15, 10))
+# Plot the reservoir levels
+#ds.storage_levels(inputs,results)
+#ds.plot_storage_levels(inputs,results,'NO')
 
-# # Plot net flows on a map
-# ds.plot_net_flows_map(inputs,results)
+# Analyze power flow tracing
+#pft, pft_prct = ds.plot_power_flow_tracing_matrix(inputs, results, cmap="magma_r", figsize=(15, 10))
 
-# # Plot congestion in the interconnection lines on a map
-# #ds.plot_line_congestion_map(inputs,results)
+# Plot net flows on a map
+#ds.plot_net_flows_map(inputs,results)
+
+# Plot congestion in the interconnection lines on a map
+#ds.plot_line_congestion_map(inputs,results)

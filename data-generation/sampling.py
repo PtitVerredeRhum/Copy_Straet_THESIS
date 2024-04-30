@@ -137,35 +137,50 @@ def prepare_simulation_files(sample, cur_folder):
         shutil.rmtree(cur_folder)
 
     refinfo = ReferenceInfo.deserialize(REFERENCE_INFO_FILE)
-    peak_load, flex_units, slow_units, CF_wton, CF_wtof, CF_pv = refinfo.tolist()
+    peak_load, flex_units, slow_units, CF_wton, CF_wtof, CF_pv, ref_values = refinfo.tolist()
     capacity_ratio, share_flex, share_sto, share_wind, share_pv, rNTC = sample
 
+    
     #if share_flex > 0.905:
     #    print("Killing stalling simulation at the root")
     #    return 1
 
     # in the first iteration, we load the input data from the original simulation directory:
+    # ADJUST STORAGE:
     data = ds.adjust_capacity(REFERENCE_SIMULATION_DIR, ('BATS','OTH'), singleunit=True, 
                                 value=peak_load*share_sto)
+
+   
     
     # then we use the dispa-set fuction to adjust the installed capacities:
+    # ADJUST FLEX
     data = ds.adjust_flexibility(data, flex_units, slow_units, share_flex, singleunit=True)
     #SimData = ds.adjust_capacity(SimData,('COMC','GAS'),singleunit=True,value=load_max*cap*flex)
     #SimData = ds.adjust_capacity(SimData,('STUR','NUC'),singleunit=True,value=load_max*cap*(1-flex))
     
     # dispa-set function to adjust the ntc:
+    # ADJUST NTC
     data = ds.adjust_ntc(data, value=rNTC)
     
-    # For wind and PV, the units should be lumped into a single unit:
-    data = ds.adjust_capacity(data, ('WTON','WIN'),
-                            value=peak_load*capacity_ratio*share_wind/CF_wton, singleunit=True)
+    # ADJUST CAPACITY_RATIO
+    data = ds.adjust_unit_capacity(data, flex_units, value= (capacity_ratio - ref['slow/peak'] - ref['share_sto'])*peak_load , singleunit=True)
+    data = ds.adjust_unit_capacity(data, slow_units, value= (capacity_ratio - ref['flex/peak'] - ref['share_sto'])*peak_load, singleunit=True)
+    data = ds.adjust_unit_capacity(data, sto_units, value= (capacity_ratio - ref['slow/peak'] - ref['flex/peak'])*peak_load, singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
     
-    # In this last iteration, the new gdx file is written to the simulation folder:
-    # tmp = os.environ["LOCALSCRATCH"] + os.sep + "Inputs.gdx"
     tmp = cur_folder + os.sep + "Inputstmp.gdx"
+    # tmp = os.environ["LOCALSCRATCH"] + os.sep + "Inputs.gdx"
+    
+    # For wind and PV, the units should be lumped into a single unit:
+        # ADJUST WIND AND PV :
+    data = ds.adjust_capacity(data, ('WTOF','WIN'),
+                            value=peak_load/CF_wtof*(share_wind - ref['share_wind_on']), singleunit=True)
+    data = ds.adjust_capacity(data, ('WTON','WIN'),
+                            value=peak_load/CF_wton*(share_wind - ref['share_wind_off']), singleunit=True)
     data = ds.adjust_capacity(data, ('PHOT','SUN'),
-                            value=peak_load*capacity_ratio*share_pv/CF_pv, singleunit=True,
-                            write_gdx=True, dest_path=cur_folder, temp_path=tmp)
+                            value=peak_load*share_pv/CF_pv, singleunit=True,dest_path=cur_folder, temp_path=tmp)
+    
+    
+
 
 if __name__ == "__main__":
     main()

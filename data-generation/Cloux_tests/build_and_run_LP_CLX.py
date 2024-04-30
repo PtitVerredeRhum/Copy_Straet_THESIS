@@ -144,7 +144,7 @@ if  adj_flex :
     data = ds.adjust_flexibility(sim_data, flex_units, slow_units, 0.8, singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
 if ajd_ntc :   
     # ADJUST NTC
-    data = ds.adjust_ntc(sim_data, value=0.64, write_gdx=True, dest_path=config['SimulationDirectory'])
+    data = ds.adjust_ntc(sim_data, value=2.0, write_gdx=True, dest_path=config['SimulationDirectory'])
 if adj_cr :   
     # ADJUST CAPACITY_RATIO
     data = ds.adjust_unit_capacity(sim_data, flex_units, value=1.0*peak_load - (units.PowerCapacity[slow_units].sum() + units.PowerCapacity[sto_units].sum()), singleunit=True)

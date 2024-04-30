@@ -13,17 +13,20 @@ sys.path.append(os.path.abspath('..'))
 # Import Dispa-SET
 import dispaset as ds
 import pandas as pd
-
-
-
 # Load the configuration file
 config = ds.load_config('../ConfigFiles/Config_CLX-MILP.xlsx')
 
 # Parameters 
-config['SimulationDirectory'] = 'simulations/simu_cloux_slurm/ref_1year_MILP_16CPU'
-config['SimulationType'] = 'Integer clustering' # 'LP clustered'
-config['StartDate'] = (2019, 1, 1, 0, 0, 0)
-config['StopDate'] = (2019, 1, 3, 0, 0, 0)
+config['SimulationDirectory'] = 'simulations/simu_cloux_slurm/adj_VRES_1001-1030_LP'
+config['SimulationType'] = 'LP clustered' #'Integer clustering' # 'LP clustered'
+config['StartDate'] = (2019, 10, 1, 0, 0, 0)
+config['StopDate'] = (2019, 10, 30, 0, 0, 0)
+
+adj_sto = False 
+adj_ren = True
+adj_flex = False
+ajd_ntc = False
+adj_cr = False
 
 # Build the simulation environment:
 sim_data = ds.build_simulation(config)
@@ -116,31 +119,38 @@ CF_wton_list[CF_wton_list["availability_factor_avg"].ne(0)].mean().loc["availabi
 CF_wtof_list = af_df.filter(like="WTOF", axis=0)
 CF_wtof_list[CF_wtof_list["availability_factor_avg"].ne(0)].mean().loc["availability_factor_avg"]
 
+
 ######################################################################################################
 ######################################################################################################
 
-capacity_ratio = 1.2
+
 tmp = os.environ["GLOBALSCRATCH"] + os.sep + "Temp_folder"  + os.sep + "Inputstmp.gdx"
-# ADJUST STORAGE:
-data = ds.adjust_capacity(sim_data, ('BATS','OTH'), singleunit=True, 
-                            value=peak_load*0.75, write_gdx=True, dest_path=config['SimulationDirectory'])
-#data = ds.adjust_capacity(data, ('HPHS','WAT'), singleunit=True, 
-#                            value=peak_load*0.75)
+    
 
-# ADJUST WIND AND PV :
-data = ds.adjust_capacity(sim_data, ('WTON','WIN'),
-                        value=peak_load*capacity_ratio*0.3/CF_wton, singleunit=True)
-data = ds.adjust_capacity(data, ('PHOT','SUN'),
-                        value=peak_load*capacity_ratio*0.1/CF_pv, singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
+if adj_sto :
+    # ADJUST STORAGE:
+    data = ds.adjust_capacity(sim_data, ('BATS','OTH'), singleunit=True, 
+                                value=peak_load*0.75, write_gdx=True, dest_path=config['SimulationDirectory'])
+if  adj_ren :   
+    # ADJUST WIND AND PV :
+    data = ds.adjust_capacity(sim_data, ('WTON','WIN'),
+                            value=peak_load*0.065/CF_wton, singleunit=True)
+    data = ds.adjust_capacity(data, ('WTOF','WIN'),
+                            value=peak_load*0.3/CF_wtof, singleunit=True)
+    data = ds.adjust_capacity(data, ('PHOT','SUN'),
+                            value=peak_load*0.15/CF_pv, singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
+if  adj_flex : 
+    # ADJUST FLEX
+    data = ds.adjust_flexibility(sim_data, flex_units, slow_units, 0.8, singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
+if ajd_ntc :   
+    # ADJUST NTC
+    data = ds.adjust_ntc(sim_data, value=2.0, write_gdx=True, dest_path=config['SimulationDirectory'])
+if adj_cr :   
+    # ADJUST CAPACITY_RATIO
+    data = ds.adjust_unit_capacity(sim_data, flex_units, value=1.0*peak_load - (units.PowerCapacity[slow_units].sum() + units.PowerCapacity[sto_units].sum()), singleunit=True)
+    data = ds.adjust_unit_capacity(data, slow_units, value=1.0*peak_load - (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[sto_units].sum()), singleunit=True)
+    data = ds.adjust_unit_capacity(data, sto_units, value=1.0*peak_load - (units.PowerCapacity[slow_units].sum() + units.PowerCapacity[flex_units].sum()), singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
 
-# ADJUST FLEX
-data = ds.adjust_flexibility(sim_data, flex_units, slow_units, 0.66, singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
+# Solve using GAMS by scirpt.sh
 
-# ADJUST NTC
-data = ds.adjust_ntc(sim_data, value=0.5, write_gdx=True, dest_path=config['SimulationDirectory'])
-
-# ADJUST CAPACITY_RATIO
-# ...? with PV and WInd?
-
-# Solve using GAMS:
-r = ds.solve_GAMS(config['SimulationDirectory'], config['GAMS_folder'])
+#r = ds.solve_GAMS(config['SimulationDirectory'], config['GAMS_folder'])
