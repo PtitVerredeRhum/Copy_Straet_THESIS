@@ -150,7 +150,16 @@ def prepare_simulation_files(sample, cur_folder):
     data = ds.adjust_capacity(REFERENCE_SIMULATION_DIR, ('BATS','OTH'), singleunit=True, 
                                 value=peak_load*share_sto)
 
-   
+    # ADJUST CAPACITY_RATIO : Variable dépendante de share storage et de share flex =>
+    units = data["units"]
+    base_units = flex_units + slow_units
+    #data = ds.adjust_unit_capacity(data, slow_units, scaling=1, value=peak_load*(capacity_ratio - share_sto - (units.PowerCapacity[flex_units].sum()/peak_load))  , singleunit=True)
+    # NO BECAUSE SLOW WILL IMPLY A CHANGE IN THE FLEX...
+    # MAYBE CHANGING CR IN FUNCTION OF THE MODIF OF FLEX AND SLOW ? 
+    #capacity_ratio = share_sto + ((units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum())/peak_load)
+    #better idea now : adapt storage -> then adapt slow and flex tot with the following line -> then the flex which doesn't influence the inputs
+    data = adjust_unit_capacity(data, base_units, scaling=1, value=(capacity_ratio - share_sto)*peak_load, singleunit=False)
+ 
     
     # then we use the dispa-set fuction to adjust the installed capacities:
     # ADJUST FLEX
@@ -162,11 +171,7 @@ def prepare_simulation_files(sample, cur_folder):
     # ADJUST NTC
     data = ds.adjust_ntc(data, value=rNTC)
     
-    # ADJUST CAPACITY_RATIO
-    data = ds.adjust_unit_capacity(data, flex_units, value= (capacity_ratio - ref['slow/peak'] - ref['share_sto'])*peak_load , singleunit=True)
-    data = ds.adjust_unit_capacity(data, slow_units, value= (capacity_ratio - ref['flex/peak'] - ref['share_sto'])*peak_load, singleunit=True)
-    data = ds.adjust_unit_capacity(data, sto_units, value= (capacity_ratio - ref['slow/peak'] - ref['flex/peak'])*peak_load, singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
-    
+   
     tmp = cur_folder + os.sep + "Inputstmp.gdx"
     # tmp = os.environ["LOCALSCRATCH"] + os.sep + "Inputs.gdx"
     
