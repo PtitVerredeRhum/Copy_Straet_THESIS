@@ -15,7 +15,7 @@ sys.path.append(os.path.abspath(".." + os.sep + ".."  + os.sep + "Dispa-SET"))
 
 import dispaset as ds
 import pandas as pd
-
+import numpy as np
 
 from config import DS_CONFIG_FILE, REFERENCE_INFO_FILE, REFERENCE_SIMULATION_DIR, START_DATE, STOP_DATE
 
@@ -90,9 +90,11 @@ def build_reference(refinfo_path):
     CF_wton_list1 = af_df.filter(like="WTON", axis=0)
     CF_wton_list = pd.concat([CF_wton_list0, CF_wton_list1])
     CF_wton = CF_wton_list.mean().loc["availability_factor_avg"]
-    #CF_wtof = af_df.filter(like="WTOF", axis=0).mean().loc("availability_factor_avg")
-    CF_wtof = af_df.filter(like="WTOF", axis=0).mean().loc["availability_factor_avg"]
-    #CF_wtof = 3.14
+    #CF_wtof = af_df.filter(like="WTOF", axis=0).mean().loc["availability_factor_avg"]
+    filtered_df = af_df.filter(like="WTOF", axis=0)
+    filtered_df.replace(0.0, np.nan, inplace=True)
+    CF_wtof = filtered_df.mean().loc["availability_factor_avg"]
+    
     
     units = sim_data["units"]
     flex_units = units[ units.Fuel.isin( ['GAS','HRD','OIL','BIO','LIG','PEA','NUC','GEO'] ) & (units.PartLoadMin < 0.5) & (units.TimeUpMinimum <5)  & (units.RampUpRate > 0.01)  ].index

@@ -17,7 +17,7 @@ import pandas as pd
 import numpy as np
 # Load the inputs and the results of the simulation
 #inputs,results = ds.get_sim_results(path='../Simulations/simulation_test',cache=False)
-path='../simulations/simu_cloux/1001_1030_LP' #'adj_VRES_1001-1030_LP' 
+path='../simulations/simu_cloux/TestALLTrue_CR_250' #'adj_VRES_1001-1030_LP' 
 inputs,results = ds.get_sim_results(path,cache=False)
 
 peak_load = inputs["parameters"]["Demand"]["val"][0].sum(axis=0).max()
@@ -31,8 +31,9 @@ CF_wton_list1 = af_df.filter(like="WTON", axis=0)
 CF_wton_list = pd.concat([CF_wton_list0, CF_wton_list1])
 CF_wton = CF_wton_list.mean().loc["availability_factor_avg"]
 #CF_wtof = af_df.filter(like="WTOF", axis=0).mean().loc("availability_factor_avg")
-CF_wtof = af_df.filter(like="WTOF", axis=0).mean().loc["availability_factor_avg"]
-#CF_wtof = 3.14
+filtered_df = af_df.filter(like="WTOF", axis=0)
+filtered_df.replace(0.0, np.nan, inplace=True)
+CF_wtof = filtered_df.mean().loc["availability_factor_avg"]
 
 units = inputs["units"]
 flex_units = units[ units.Fuel.isin( ['GAS','HRD','OIL','BIO','LIG','PEA','NUC','GEO'] ) & (units.PartLoadMin < 0.5) & (units.TimeUpMinimum <5)  & (units.RampUpRate > 0.01)  ].index
@@ -173,39 +174,38 @@ cf = {}
 # PLOT !!! #############################################################################################
 # PLOT !!! #############################################################################################
 
-# if needed, define the plotting range for the dispatch plot:
-import pandas as pd
-rng = pd.date_range(start='2019-10-09',end='2019-10-25',freq='h')
+# # if needed, define the plotting range for the dispatch plot:
+# import pandas as pd
+# rng = pd.date_range(start='2019-10-09',end='2019-10-25',freq='h')
 
-# Generate country-specific plots
-ds.plot_zone(inputs,results, z='UK', z_th='UK_th', rng=rng)
+# # Generate country-specific plots
+# ds.plot_zone(inputs,results, z='SE', z_th='SE_th', rng=rng)
 
-#ds.plot_zone(inputs,results, z='DE', z_th='DE_th', rng=rng)
+# ds.plot_zone(inputs,results, z='DE', z_th='DE_th', rng=rng)
 
-# Bar plot with the installed capacities in all countries:
-#cap = ds.plot_zone_capacities(inputs,results)
+# # #Bar plot with the installed capacities in all countries:
+# cap = ds.plot_zone_capacities(inputs,results)
 
-# Bar plot with installed storage capacity
-#sto = ds.plot_tech_cap(inputs)
+# # #Bar plot with installed storage capacity
+# sto = ds.plot_tech_cap(inputs)
 
-# Violin plot for CO2 emissions
-#ds.plot_co2(inputs, results, figsize=(9, 6), width=0.9)
+# # #Violin plot for CO2 emissions
+# ds.plot_co2(inputs, results, figsize=(9, 6), width=0.9)
 
-# Bar plot with the energy balances in all countries:
-#ds.plot_energy_zone_fuel(inputs,results,ds.get_indicators_powerplant(inputs,results))
+# # #Bar plot with the energy balances in all countries:
+# ds.plot_energy_zone_fuel(inputs,results,ds.get_indicators_powerplant(inputs,results))
 
-# Analyse the results for each country and provide quantitative indicators:
-#r = ds.get_result_analysis(inputs,results)
+# # #Analyse the results for each country and provide quantitative indicators:
+# # #r = ds.get_result_analysis(inputs,results)
 
-# Plot the reservoir levels
-#ds.storage_levels(inputs,results)
-#ds.plot_storage_levels(inputs,results,'NO')
+# # #Plot the reservoir levels
+# #ds.plot_storage_levels(inputs,results,'DE')
 
-# Analyze power flow tracing
-#pft, pft_prct = ds.plot_power_flow_tracing_matrix(inputs, results, cmap="magma_r", figsize=(15, 10))
+# # #Analyze power flow tracing
+# # #pft, pft_prct = ds.plot_power_flow_tracing_matrix(inputs, results, cmap="magma_r", figsize=(15, 10))
 
-# Plot net flows on a map
-#ds.plot_net_flows_map(inputs,results)
+# # #Plot net flows on a map
+# ds.plot_net_flows_map(inputs,results)
 
-# Plot congestion in the interconnection lines on a map
-#ds.plot_line_congestion_map(inputs,results)
+# # #Plot congestion in the interconnection lines on a map
+# # ds.plot_line_congestion_map(inputs,results)

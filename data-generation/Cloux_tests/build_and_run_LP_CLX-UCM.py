@@ -134,7 +134,7 @@ if adj_sto :
                                 value=peak_load*0.7) # write_gdx=True, dest_path=config['SimulationDirectory'])
 if  adj_ren :   
     # ADJUST WIND AND PV :
-    data = ds.adjust_capacity(sim_data, ('WTON','WIN'),
+    data = ds.adjust_capacity(data, ('WTON','WIN'),
                             value=peak_load*0.065/CF_wton, singleunit=True)
     data = ds.adjust_capacity(data, ('WTOF','WIN'),
                             value=peak_load*0.3/CF_wtof, singleunit=True)
@@ -152,13 +152,14 @@ if adj_cr :
     #units = data["units"]
     #base_units = flex_units + slow_units
     data = ds.adjust_unit_capacity(data, base_units, scaling=1, value=(2.5 - 0.7)*peak_load, singleunit=True)
+    #data = ds.adjust_unit_capacity(data, base_units, scaling=(((2.5 - 0.7)*peak_load)/(units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum())), singleunit=True)
     
 if  adj_flex : 
     # ADJUST FLEX
-    data = ds.adjust_flexibility(sim_data, flex_units, slow_units, 0.75, singleunit=True) # write_gdx=True, dest_path=config['SimulationDirectory'])
+    data = ds.adjust_flexibility(data, flex_units, slow_units, 0.75, singleunit=True) # write_gdx=True, dest_path=config['SimulationDirectory'])
 if ajd_ntc :   
     # ADJUST NTC
-    data = ds.adjust_ntc(sim_data, value=2.0, write_gdx=True, dest_path=config['SimulationDirectory'])
+    data = ds.adjust_ntc(data, value=2.0, write_gdx=True, dest_path=config['SimulationDirectory'])
 
 
 # Solve using GAMS by scirpt.sh
