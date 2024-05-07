@@ -56,6 +56,7 @@ CF_wtof = af_df.filter(like="WTOF", axis=0).mean().loc["availability_factor_avg"
 units = sim_data["units"]
 flex_units = units[ units.Fuel.isin( ['GAS','HRD','OIL','BIO','LIG','PEA','NUC','GEO'] ) & (units.PartLoadMin < 0.5) & (units.TimeUpMinimum <5)  & (units.RampUpRate > 0.01)  ].index
 slow_units = units[ units.Fuel.isin( ['GAS','HRD','OIL','BIO','LIG','PEA','NUC','GEO'] ) & ((units.PartLoadMin >= 0.5) | (units.TimeUpMinimum >=5)  | (units.RampUpRate <= 0.01)   )  ].index
+base_units = flex_units.append(slow_units)
 #sto_units  = units[ units.Fuel.isin( ['OTH'] ) ].index
 sto_units  = units[ units.Technology == 'BATS' ].index
 #wind_units = units[ units.Fuel.isin( ['WIN'] ) ].index 
@@ -148,8 +149,8 @@ if adj_cr :
 #    data = ds.adjust_unit_capacity(data, slow_units, scaling=0.5 , singleunit=True)
 #    data = ds.adjust_capacity(data, ('BATS','OTH'), singleunit=True, 
 #                               value=peak_load*3.0, write_gdx=True, dest_path=config['SimulationDirectory'])
-    units = data["units"]
-    base_units = flex_units + slow_units
+    #units = data["units"]
+    #base_units = flex_units + slow_units
     data = ds.adjust_unit_capacity(data, base_units, scaling=1, value=(2.5 - 0.7)*peak_load, singleunit=True)
     
 if  adj_flex : 

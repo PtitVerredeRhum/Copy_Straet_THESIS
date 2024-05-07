@@ -151,13 +151,14 @@ def prepare_simulation_files(sample, cur_folder):
                                 value=peak_load*share_sto)
 
     # ADJUST CAPACITY_RATIO : Variable dépendante de share storage et de share flex =>
-    units = data["units"]
-    base_units = flex_units + slow_units
+    #units = data["units"]
+    #base_units = flex_units + slow_units
     #data = ds.adjust_unit_capacity(data, slow_units, scaling=1, value=peak_load*(capacity_ratio - share_sto - (units.PowerCapacity[flex_units].sum()/peak_load))  , singleunit=True)
     # NO BECAUSE SLOW WILL IMPLY A CHANGE IN THE FLEX...
     # MAYBE CHANGING CR IN FUNCTION OF THE MODIF OF FLEX AND SLOW ? 
     #capacity_ratio = share_sto + ((units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum())/peak_load)
     #better idea now : adapt storage -> then adapt slow and flex tot with the following line -> then the flex which doesn't influence the inputs
+    base_units = flex_units.append(slow_units)
     data = adjust_unit_capacity(data, base_units, scaling=1, value=(capacity_ratio - share_sto)*peak_load, singleunit=True)
  
     
