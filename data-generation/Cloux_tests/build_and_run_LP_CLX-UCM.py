@@ -14,19 +14,19 @@ sys.path.append(os.path.abspath('..'))
 import dispaset as ds
 import pandas as pd
 # Load the configuration file
-config = ds.load_config('../ConfigFiles/Config_CLX-MILP.xlsx')
+config = ds.load_config('ConfigFiles/Config_CLX-MILP.xlsx')
 
 # Parameters 
-config['SimulationDirectory'] = 'simulations/simu_cloux_slurm/adj_VRES_1001-1030_LP'
+config['SimulationDirectory'] = 'simulations/simu_cloux_slurm/TestALLTrue_CR_250'
 config['SimulationType'] = 'LP clustered' #'Integer clustering' # 'LP clustered'
 config['StartDate'] = (2019, 10, 1, 0, 0, 0)
 config['StopDate'] = (2019, 10, 30, 0, 0, 0)
 
-adj_sto = False 
+adj_sto = True 
 adj_ren = True
-adj_flex = False
-ajd_ntc = False
-adj_cr = False
+adj_flex = True
+ajd_ntc = True
+adj_cr = True
 
 # Build the simulation environment:
 sim_data = ds.build_simulation(config)
@@ -130,7 +130,7 @@ tmp = os.environ["GLOBALSCRATCH"] + os.sep + "Temp_folder"  + os.sep + "Inputstm
 if adj_sto :
     # ADJUST STORAGE:
     data = ds.adjust_capacity(sim_data, ('BATS','OTH'), singleunit=True, 
-                                value=peak_load*0.75, write_gdx=True, dest_path=config['SimulationDirectory'])
+                                value=peak_load*0.7) # write_gdx=True, dest_path=config['SimulationDirectory'])
 if  adj_ren :   
     # ADJUST WIND AND PV :
     data = ds.adjust_capacity(sim_data, ('WTON','WIN'),
@@ -138,18 +138,27 @@ if  adj_ren :
     data = ds.adjust_capacity(data, ('WTOF','WIN'),
                             value=peak_load*0.3/CF_wtof, singleunit=True)
     data = ds.adjust_capacity(data, ('PHOT','SUN'),
-                            value=peak_load*0.15/CF_pv, singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
+                            value=peak_load*0.15/CF_pv, singleunit=True) # write_gdx=True, dest_path=config['SimulationDirectory'])
+if adj_cr :   
+    # ADJUST CAPACITY_RATIO
+#    data = ds.adjust_unit_capacity(sim_data, flex_units, value=1.0*peak_load - (units.PowerCapacity[slow_units].sum() + units.PowerCapacity[sto_units].sum()), singleunit=True)
+#    data = ds.adjust_unit_capacity(data, slow_units, value=1.0*peak_load - (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[sto_units].sum()), singleunit=True)
+#    data = ds.adjust_unit_capacity(data, sto_units, value=1.0*peak_load - (units.PowerCapacity[slow_units].sum() + units.PowerCapacity[flex_units].sum()), singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
+#    data = ds.adjust_unit_capacity(sim_data, flex_units, scaling=0.7 , singleunit=True)
+#    data = ds.adjust_unit_capacity(data, slow_units, scaling=0.5 , singleunit=True)
+#    data = ds.adjust_capacity(data, ('BATS','OTH'), singleunit=True, 
+#                               value=peak_load*3.0, write_gdx=True, dest_path=config['SimulationDirectory'])
+    units = data["units"]
+    base_units = flex_units + slow_units
+    data = ds.adjust_unit_capacity(data, base_units, scaling=1, value=(2.5 - 0.7)*peak_load, singleunit=True)
+    
 if  adj_flex : 
     # ADJUST FLEX
-    data = ds.adjust_flexibility(sim_data, flex_units, slow_units, 0.8, singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
+    data = ds.adjust_flexibility(sim_data, flex_units, slow_units, 0.75, singleunit=True) # write_gdx=True, dest_path=config['SimulationDirectory'])
 if ajd_ntc :   
     # ADJUST NTC
     data = ds.adjust_ntc(sim_data, value=2.0, write_gdx=True, dest_path=config['SimulationDirectory'])
-if adj_cr :   
-    # ADJUST CAPACITY_RATIO
-    data = ds.adjust_unit_capacity(sim_data, flex_units, value=1.0*peak_load - (units.PowerCapacity[slow_units].sum() + units.PowerCapacity[sto_units].sum()), singleunit=True)
-    data = ds.adjust_unit_capacity(data, slow_units, value=1.0*peak_load - (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[sto_units].sum()), singleunit=True)
-    data = ds.adjust_unit_capacity(data, sto_units, value=1.0*peak_load - (units.PowerCapacity[slow_units].sum() + units.PowerCapacity[flex_units].sum()), singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
+
 
 # Solve using GAMS by scirpt.sh
 

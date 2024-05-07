@@ -2,10 +2,10 @@
 #
 #SBATCH --mail-user=romain.cloux@student.uliege.be
 #SBATCH --mail-type=BEGIN,END
-#SBATCH --job-name=adjSTO_300_1001_1030_LP
+#SBATCH --job-name=TestALLTrue_CR_250
 #SBATCH --time=0-1:55:00 # days-hh:mm:ss
 #
-#SBATCH --output=simulations/simu_cloux_slurm/adjSTO_300_1001_1030_LP.txt
+#SBATCH --output=simulations/simu_cloux_slurm/TestALLTrue_CR_250.txt
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1  # python is not parallel
 #SBATCH --mem-per-cpu=14000 # megabytes
@@ -24,7 +24,7 @@ echo "File prepared, starting simulation..."
 first_task_id=$SLURM_JOB_ID
 #SBATCH --dependency=afterok:$first_task_id
 
-MY_DIR="simulations/simu_cloux_slurm/adjSTO_300_1001_1030_LP"
+MY_DIR="simulations/simu_cloux_slurm/TestALLTrue_CR_250"
 cd $MY_DIR
 
 

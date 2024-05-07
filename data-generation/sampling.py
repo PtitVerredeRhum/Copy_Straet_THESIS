@@ -158,7 +158,7 @@ def prepare_simulation_files(sample, cur_folder):
     # MAYBE CHANGING CR IN FUNCTION OF THE MODIF OF FLEX AND SLOW ? 
     #capacity_ratio = share_sto + ((units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum())/peak_load)
     #better idea now : adapt storage -> then adapt slow and flex tot with the following line -> then the flex which doesn't influence the inputs
-    data = adjust_unit_capacity(data, base_units, scaling=1, value=(capacity_ratio - share_sto)*peak_load, singleunit=False)
+    data = adjust_unit_capacity(data, base_units, scaling=1, value=(capacity_ratio - share_sto)*peak_load, singleunit=True)
  
     
     # then we use the dispa-set fuction to adjust the installed capacities:
