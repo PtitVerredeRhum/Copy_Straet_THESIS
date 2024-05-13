@@ -71,7 +71,7 @@ for u in coal_units:
     variable_cost = variable_costs[idx].mean()
     print(f"Variable cost for {u} (idx: {idx}): {variable_cost}")
 ref = {}
-ref['overcapacity'] = (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum() + units.PowerCapacity[sto_units].sum()) / peak_load
+ref['overcapacity'] = (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum()) / peak_load
 ref['share_flex'] =   units.PowerCapacity[flex_units].sum() / (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum())
 ref['share_sto'] =    units.PowerCapacity[sto_units].sum() / peak_load
 ref['share_wind_on'] =   units.PowerCapacity[windon_units].sum() / peak_load * CF_wton
@@ -151,8 +151,8 @@ if adj_cr :
 #                               value=peak_load*3.0, write_gdx=True, dest_path=config['SimulationDirectory'])
     #units = data["units"]
     #base_units = flex_units + slow_units
-    data = ds.adjust_unit_capacity(data, base_units, scaling=1, value=(2.5 - 0.7)*peak_load, singleunit=True)
-    #data = ds.adjust_unit_capacity(data, base_units, scaling=(((2.5 - 0.7)*peak_load)/(units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum())), singleunit=True)
+    #data = ds.adjust_unit_capacity(data, base_units, scaling=1, value=(2.5 - 0.7)*peak_load, singleunit=True)
+    data = ds.adjust_unit_capacity(data, base_units, scaling=(((2.0 - 0.7)*peak_load)/(units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum())), singleunit=False)
     
 if  adj_flex : 
     # ADJUST FLEX

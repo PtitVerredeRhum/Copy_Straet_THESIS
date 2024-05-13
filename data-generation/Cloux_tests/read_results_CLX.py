@@ -52,7 +52,7 @@ for u in coal_units:
     variable_cost = variable_costs[idx].mean()
     print(f"Variable cost for {u} (idx: {idx}): {variable_cost}")
 ref = {}
-ref['overcapacity'] = (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum() + units.PowerCapacity[sto_units].sum()) / peak_load
+ref['overcapacity'] = (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum()) / peak_load
 ref['share_flex'] =   units.PowerCapacity[flex_units].sum() / (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum())
 ref['share_sto'] =    units.PowerCapacity[sto_units].sum() / peak_load
 ref['share_wind_on'] =   units.PowerCapacity[windon_units].sum() / peak_load * CF_wton
