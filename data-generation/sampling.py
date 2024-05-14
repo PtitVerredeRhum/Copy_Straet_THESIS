@@ -145,32 +145,31 @@ def prepare_simulation_files(sample, cur_folder):
     #    print("Killing stalling simulation at the root")
     #    return 1
 
-    # in the first iteration, we load the input data from the original simulation directory:
+    
     # ADJUST STORAGE:
     data = ds.adjust_capacity(REFERENCE_SIMULATION_DIR, ('BATS','OTH'), singleunit=True, 
                                 value=peak_load*share_sto)
 
     # ADJUST CAPACITY_RATIO : Variable dépendante de share storage et de share flex =>
-    #units = data["units"]
-    #base_units = flex_units + slow_units
-    #data = ds.adjust_unit_capacity(data, slow_units, scaling=1, value=peak_load*(capacity_ratio - share_sto - (units.PowerCapacity[flex_units].sum()/peak_load))  , singleunit=True)
-    # NO BECAUSE SLOW WILL IMPLY A CHANGE IN THE FLEX...
-    # MAYBE CHANGING CR IN FUNCTION OF THE MODIF OF FLEX AND SLOW ? 
-    #capacity_ratio = share_sto + ((units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum())/peak_load)
-    #better idea now : adapt storage -> then adapt slow and flex tot with the following line -> then the flex which doesn't influence the inputs
+    resultat = []
     base_units = flex_units.append(slow_units)
-    data = adjust_unit_capacity(data, base_units, scaling=1, value=(capacity_ratio - share_sto)*peak_load, singleunit=True)
+    for index in base_units:
+         terme = index.split('_')[1]  # Récupérer le deuxième terme
+         terme_suivant = index.split('_')[2]  # Récupérer le troisième terme
+         tuple_actuel = (terme, terme_suivant)
+         if tuple_actuel not in resultat:  # Vérifier si le tuple n'est pas déjà dans la liste
+             resultat.append(tuple_actuel)
+             data = ds.adjust_capacity(data, tuple_actuel, scaling=(capacity_ratio)/(ref['overcapacity']), singleunit=True)
  
     
-    # then we use the dispa-set fuction to adjust the installed capacities:
+    
     # ADJUST FLEX
     data = ds.adjust_flexibility(data, flex_units, slow_units, share_flex, singleunit=True)
-    #SimData = ds.adjust_capacity(SimData,('COMC','GAS'),singleunit=True,value=load_max*cap*flex)
-    #SimData = ds.adjust_capacity(SimData,('STUR','NUC'),singleunit=True,value=load_max*cap*(1-flex))
+    
     
     # dispa-set function to adjust the ntc:
     # ADJUST NTC
-    data = ds.adjust_ntc(data, value=rNTC)
+    data = ds.adjust_ntc(data, value=rNTC/ref['rNTC'])
     
    
     tmp = cur_folder + os.sep + "Inputstmp.gdx"

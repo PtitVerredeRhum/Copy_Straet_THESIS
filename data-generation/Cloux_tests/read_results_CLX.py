@@ -17,7 +17,7 @@ import pandas as pd
 import numpy as np
 # Load the inputs and the results of the simulation
 #inputs,results = ds.get_sim_results(path='../Simulations/simulation_test',cache=False)
-path='../simulations/simu_cloux/TestALLTrue_CR_250' #'adj_VRES_1001-1030_LP' 
+path='../simulations/simu_cloux/SEPT_CR_ALL_NEWCODE' #'adj_VRES_1001-1030_LP' SEPT_REF_forCR
 inputs,results = ds.get_sim_results(path,cache=False)
 
 peak_load = inputs["parameters"]["Demand"]["val"][0].sum(axis=0).max()
@@ -67,20 +67,33 @@ countries = inputs['sets']['n']
 max_load = inputs['parameters']['Demand']['val'][0].max(axis=1)
      
 peak_load_df = pd.DataFrame(max_load, index=countries, columns=['max_load'])
-     
+
+#######################################################################################################################################
+# for c in countries:
+#     ntc = 0
+#     for l in NTC.index:
+#         if c in l: 
+#             ntc += NTC.loc[l,'FlowMax_hmean']
+#     peak_load_df.loc[c,'rNTC'] = ntc / 2 / peak_load_df.loc[c,'max_load']
+
+# peak_load_df['weigthed'] = peak_load_df['max_load'] * peak_load_df['rNTC'] / peak_load_df['max_load'].sum()
+
+# ref['rNTC'] = peak_load_df['weigthed'].sum()  
+
 for c in countries:
     ntc = 0
     for l in NTC.index:
-        if c in l: 
+        #if c in l: 
+        if c == l[:2]:
             ntc += NTC.loc[l,'FlowMax_hmean']
-    peak_load_df.loc[c,'rNTC'] = ntc / 2 / peak_load_df.loc[c,'max_load']
+    peak_load_df.loc[c,'NTC_zone'] = ntc #/ peak_load_df.loc[c,'max_load']
 
-peak_load_df['weigthed'] = peak_load_df['max_load'] * peak_load_df['rNTC'] / peak_load_df['max_load'].sum()
-
-ref['rNTC'] = peak_load_df['weigthed'].sum()  
-
+#peak_load_df['weigthed'] = peak_load_df['max_load'] * peak_load_df['rNTC'] / peak_load_df['max_load'].sum()
+peak_load_df['weigthed'] = peak_load_df.loc[c,'NTC_zone']/peak_load_df['max_load'].sum()
 
 
+ref['rNTC'] = peak_load_df['weigthed'].sum() 
+#######################################################################################################################################
 
 
 # POST PROCESSING !!! #############################################################################################
@@ -209,3 +222,25 @@ cf = {}
 
 # # #Plot congestion in the interconnection lines on a map
 # # ds.plot_line_congestion_map(inputs,results)
+
+################ TEST ################
+
+
+# resultat = []
+
+# for index in base_units:
+#     terme = index.split('_')[1]  # Récupérer le deuxième terme
+#     terme_suivant = index.split('_')[2]  # Récupérer le troisième terme
+#     tuple_actuel = (terme, terme_suivant)
+#     if tuple_actuel not in resultat:  # Vérifier si le tuple n'est pas déjà dans la liste
+#         resultat.append(tuple_actuel)
+
+# print(resultat)
+    
+#liste_tuples_slow = [('STUR', 'HRD'), ('STUR', 'NUC'), ('STUR', 'LIG'), ('STUR', 'HRD'), ('STUR', 'HRD'), ('STUR', 'HRD')]
+#for i in liste_tuples_slow:
+#    data = ds.adjust_capacity(data, liste_tuples_slow, value=peak_load*1.7, singleunit=True)
+#liste_tuples_flex = [('COMC', 'GAS'), ('GTUR', 'GAS'), ('STUR', 'GAS'), ('ICEN', 'GAS'), ('STUR', 'OIL'), ('ICEN', 'BIO'),  ('STUR', 'BIO'),  ('STUR', 'GAS'), ('STUR', 'GAS'),('STUR', 'GAS')]
+#for i in liste_tuples_flex:
+#    data = ds.adjust_capacity(data, liste_tuples_flex, value=peak_load*1.7, singleunit=True)
+ 

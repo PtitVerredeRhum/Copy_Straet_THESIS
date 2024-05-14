@@ -137,11 +137,14 @@ def build_reference(refinfo_path):
     for c in countries:
         ntc = 0
         for l in NTC.index:
-            if c in l: 
+            #if c in l: 
+            if c == l[:2]:
                 ntc += NTC.loc[l,'FlowMax_hmean']
-        peak_load_df.loc[c,'rNTC'] = ntc / 2 / peak_load_df.loc[c,'max_load']
+        peak_load_df.loc[c,'NTC_zone'] = ntc #/ peak_load_df.loc[c,'max_load']
     
-    peak_load_df['weigthed'] = peak_load_df['max_load'] * peak_load_df['rNTC'] / peak_load_df['max_load'].sum()
+    #peak_load_df['weigthed'] = peak_load_df['max_load'] * peak_load_df['rNTC'] / peak_load_df['max_load'].sum()
+    peak_load_df['weigthed'] = peak_load_df.loc[c,'NTC_zone']/peak_load_df['max_load'].sum()
+    
     
     ref['rNTC'] = peak_load_df['weigthed'].sum()     
     

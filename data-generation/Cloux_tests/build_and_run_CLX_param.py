@@ -12,6 +12,7 @@ sys.path.append(os.path.abspath('..'))
 
 # Import Dispa-SET
 import dispaset as ds
+import numpy as np
 import pandas as pd
 # Load the configuration file
 config = ds.load_config('ConfigFiles/Config_CLX-MILP.xlsx')
@@ -50,8 +51,11 @@ CF_wton_list1 = af_df.filter(like="WTON", axis=0)
 CF_wton_list = pd.concat([CF_wton_list0, CF_wton_list1])
 CF_wton = CF_wton_list.mean().loc["availability_factor_avg"]
 #CF_wtof = af_df.filter(like="WTOF", axis=0).mean().loc("availability_factor_avg")
-CF_wtof = af_df.filter(like="WTOF", axis=0).mean().loc["availability_factor_avg"]
+#CF_wtof = af_df.filter(like="WTOF", axis=0).mean().loc["availability_factor_avg"]
 #CF_wtof = 3.14
+filtered_df = af_df.filter(like="WTOF", axis=0)
+filtered_df.replace(0.0, np.nan, inplace=True)
+CF_wtof = filtered_df.mean().loc["availability_factor_avg"]
 
 units = sim_data["units"]
 flex_units = units[ units.Fuel.isin( ['GAS','HRD','OIL','BIO','LIG','PEA','NUC','GEO'] ) & (units.PartLoadMin < 0.5) & (units.TimeUpMinimum <5)  & (units.RampUpRate > 0.01)  ].index
@@ -142,24 +146,23 @@ if  adj_ren :
                             value=peak_load*0.15/CF_pv, singleunit=True) # write_gdx=True, dest_path=config['SimulationDirectory'])
 if adj_cr :   
     # ADJUST CAPACITY_RATIO
-#    data = ds.adjust_unit_capacity(sim_data, flex_units, value=1.0*peak_load - (units.PowerCapacity[slow_units].sum() + units.PowerCapacity[sto_units].sum()), singleunit=True)
-#    data = ds.adjust_unit_capacity(data, slow_units, value=1.0*peak_load - (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[sto_units].sum()), singleunit=True)
-#    data = ds.adjust_unit_capacity(data, sto_units, value=1.0*peak_load - (units.PowerCapacity[slow_units].sum() + units.PowerCapacity[flex_units].sum()), singleunit=True, write_gdx=True, dest_path=config['SimulationDirectory'])
-#    data = ds.adjust_unit_capacity(sim_data, flex_units, scaling=0.7 , singleunit=True)
-#    data = ds.adjust_unit_capacity(data, slow_units, scaling=0.5 , singleunit=True)
-#    data = ds.adjust_capacity(data, ('BATS','OTH'), singleunit=True, 
-#                               value=peak_load*3.0, write_gdx=True, dest_path=config['SimulationDirectory'])
-    #units = data["units"]
-    #base_units = flex_units + slow_units
-    #data = ds.adjust_unit_capacity(data, base_units, scaling=1, value=(2.5 - 0.7)*peak_load, singleunit=True)
-    data = ds.adjust_unit_capacity(data, base_units, scaling=(((2.0 - 0.7)*peak_load)/(units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum())), singleunit=False)
+    resultat = []
+
+    for index in base_units:
+         terme = index.split('_')[1]  # Récupérer le deuxième terme
+         terme_suivant = index.split('_')[2]  # Récupérer le troisième terme
+         tuple_actuel = (terme, terme_suivant)
+         if tuple_actuel not in resultat:  # Vérifier si le tuple n'est pas déjà dans la liste
+             resultat.append(tuple_actuel)
+             data = ds.adjust_capacity(data, tuple_actuel, scaling=(1.7)/(ref['overcapacity']), singleunit=True)
+
     
 if  adj_flex : 
     # ADJUST FLEX
     data = ds.adjust_flexibility(data, flex_units, slow_units, 0.75, singleunit=True) # write_gdx=True, dest_path=config['SimulationDirectory'])
 if ajd_ntc :   
     # ADJUST NTC
-    data = ds.adjust_ntc(data, value=2.0, write_gdx=True, dest_path=config['SimulationDirectory'])
+    data = ds.adjust_ntc(data, value=2.0/ref['rNTC'], write_gdx=True, dest_path=config['SimulationDirectory'])
 
 
 # Solve using GAMS by scirpt.sh
