@@ -159,7 +159,7 @@ def prepare_simulation_files(sample, cur_folder):
          tuple_actuel = (terme, terme_suivant)
          if tuple_actuel not in resultat:  # Vérifier si le tuple n'est pas déjà dans la liste
              resultat.append(tuple_actuel)
-             data = ds.adjust_capacity(data, tuple_actuel, scaling=(capacity_ratio)/(ref['overcapacity']), singleunit=True)
+             data = ds.adjust_capacity(data, tuple_actuel, scaling=(capacity_ratio)/(ref_values['overcapacity']), singleunit=True)
  
     
     
@@ -169,7 +169,7 @@ def prepare_simulation_files(sample, cur_folder):
     
     # dispa-set function to adjust the ntc:
     # ADJUST NTC
-    data = ds.adjust_ntc(data, value=rNTC/ref['rNTC'])
+    data = ds.adjust_ntc(data, value=rNTC/ref_values['rNTC'])
     
    
     tmp = cur_folder + os.sep + "Inputstmp.gdx"
@@ -178,9 +178,9 @@ def prepare_simulation_files(sample, cur_folder):
     # For wind and PV, the units should be lumped into a single unit:
         # ADJUST WIND AND PV :
     data = ds.adjust_capacity(data, ('WTOF','WIN'),
-                            value=peak_load/CF_wtof*(share_wind - ref['share_wind_on']), singleunit=True)
+                            value=peak_load/CF_wtof*(share_wind - ref_values['share_wind_on']), singleunit=True)
     data = ds.adjust_capacity(data, ('WTON','WIN'),
-                            value=peak_load/CF_wton*(share_wind - ref['share_wind_off']), singleunit=True)
+                            value=peak_load/CF_wton*(share_wind - ref_values['share_wind_off']), singleunit=True)
     data = ds.adjust_capacity(data, ('PHOT','SUN'),
                             value=peak_load*share_pv/CF_pv, singleunit=True,dest_path=cur_folder, temp_path=tmp)
     

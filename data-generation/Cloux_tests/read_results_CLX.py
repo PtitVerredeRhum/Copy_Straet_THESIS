@@ -17,7 +17,7 @@ import pandas as pd
 import numpy as np
 # Load the inputs and the results of the simulation
 #inputs,results = ds.get_sim_results(path='../Simulations/simulation_test',cache=False)
-path='../simulations/simu_cloux/SEPT_CR_ALL_NEWCODE' #'adj_VRES_1001-1030_LP' SEPT_REF_forCR
+path='../simulations/simu_cloux/MILP_1year_UCM' #   MILP_1year_UCM
 inputs,results = ds.get_sim_results(path,cache=False)
 
 peak_load = inputs["parameters"]["Demand"]["val"][0].sum(axis=0).max()
