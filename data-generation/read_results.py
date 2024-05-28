@@ -122,7 +122,7 @@ def read_data(path):
     row.loc['NetImports_[TWh]']= zone_results['NetImports'] / 1E6
     
     row.loc['Curtailment_[TWh]'] = zone_results['Curtailment'] / 1E6
-    row.loc['Shedding_[TWh]'] = zone_results['ShedLoad'] / 1E6
+    row.loc['Shedding_[TWh]'] = zone_results['ShedLoad']
     row.loc['LostLoad_[TWh]'] = lost_load / 1E6
 
     row.loc['MaxRESGeneration_[TWh]'] = total_vres

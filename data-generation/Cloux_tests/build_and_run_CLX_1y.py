@@ -41,7 +41,7 @@ print("#-#-#-#-#-#-# Build simulation end")
 
  # Extract some significant values from the config:
 peak_load = sim_data["parameters"]["Demand"]["val"][0].sum(axis=0).max()
-
+FC = (sim_data["parameters"]["Demand"]["val"][0].sum().sum())/(peak_load*8784)
 availability_factors = sim_data["parameters"]["AvailabilityFactor"]["val"].mean(axis=1)
 af_df = pd.DataFrame(availability_factors, index=sim_data["sets"]["au"], columns=["availability_factor_avg"])
 
@@ -70,6 +70,10 @@ pv_units   = units[ units.Technology == 'PHOT'].index
 hror_units = units[ units.Technology == 'HROR'].index   
 coal_units = units[units.Fuel.isin(["HRD"])].index
 variable_costs = sim_data["parameters"]["CostVariable"]["val"]
+
+# Cosnidering that there are no Stationnary batteries in 2019 , a low value of Power Capacity of 10MW is considered for each.
+units.PowerCapacity[sto_units] = 10 #MW
+
 for u in coal_units:
     idx = coal_units.get_loc(u)
     variable_cost = variable_costs[idx].mean()
@@ -78,9 +82,10 @@ ref = {}
 ref['overcapacity'] = (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum()) / peak_load
 ref['share_flex'] =   units.PowerCapacity[flex_units].sum() / (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum())
 ref['share_sto'] =    units.PowerCapacity[sto_units].sum() / peak_load
-ref['share_wind_on'] =   units.PowerCapacity[windon_units].sum() / peak_load * CF_wton
-ref['share_wind_off'] =   units.PowerCapacity[windoff_units].sum() / peak_load * CF_wtof
-ref['share_pv'] =     units.PowerCapacity[pv_units].sum() / peak_load * CF_pv
+ref['share_wind_on'] =   units.PowerCapacity[windon_units].sum()* CF_wton / (peak_load*FC)
+ref['share_wind_off'] =   units.PowerCapacity[windoff_units].sum()* CF_wtof / (peak_load*FC)
+ref['share_wind'] =   ((units.PowerCapacity[windon_units].sum()* CF_wton) + (units.PowerCapacity[windoff_units].sum()* CF_wtof)) / (peak_load*FC) 
+ref['share_pv'] =     units.PowerCapacity[pv_units].sum()* CF_pv / (peak_load*FC) 
 
 
 # Computing rNTCs

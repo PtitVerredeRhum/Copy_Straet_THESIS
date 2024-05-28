@@ -17,11 +17,11 @@ import pandas as pd
 import numpy as np
 # Load the inputs and the results of the simulation
 #inputs,results = ds.get_sim_results(path='../Simulations/simulation_test',cache=False)
-path='../simulations/simu_cloux/MILP_1year_UCM' #   MILP_1year_UCM
+path='../simulations/simu_cloux/LP_1year_UCM' #   MILP_1year_UCM
 inputs,results = ds.get_sim_results(path,cache=False)
 
 peak_load = inputs["parameters"]["Demand"]["val"][0].sum(axis=0).max()
-
+FC = (inputs["parameters"]["Demand"]["val"][0].sum().sum())/(peak_load*8784)
 availability_factors = inputs["parameters"]["AvailabilityFactor"]["val"].mean(axis=1)
 af_df = pd.DataFrame(availability_factors, index=inputs["sets"]["au"], columns=["availability_factor_avg"])
 
@@ -47,6 +47,11 @@ pv_units   = units[ units.Technology == 'PHOT'].index
 hror_units = units[ units.Technology == 'HROR'].index   
 coal_units = units[units.Fuel.isin(["HRD"])].index
 variable_costs = inputs["parameters"]["CostVariable"]["val"]
+
+# Cosnidering that there are no Stationnary batteries in 2019 , a low value of Power Capacity of 10MW is considered for each.
+units.PowerCapacity[sto_units] = 10 #MW
+
+
 for u in coal_units:
     idx = coal_units.get_loc(u)
     variable_cost = variable_costs[idx].mean()
@@ -55,9 +60,10 @@ ref = {}
 ref['overcapacity'] = (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum()) / peak_load
 ref['share_flex'] =   units.PowerCapacity[flex_units].sum() / (units.PowerCapacity[flex_units].sum() + units.PowerCapacity[slow_units].sum())
 ref['share_sto'] =    units.PowerCapacity[sto_units].sum() / peak_load
-ref['share_wind_on'] =   units.PowerCapacity[windon_units].sum() / peak_load * CF_wton
-ref['share_wind_off'] =   units.PowerCapacity[windoff_units].sum() / peak_load * CF_wtof
-ref['share_pv'] =     units.PowerCapacity[pv_units].sum() / peak_load * CF_pv
+ref['share_wind_on'] =   units.PowerCapacity[windon_units].sum()* CF_wton / (peak_load*FC)
+ref['share_wind_off'] =   units.PowerCapacity[windoff_units].sum()* CF_wtof / (peak_load*FC)
+ref['share_wind'] =   ((units.PowerCapacity[windon_units].sum()* CF_wton) + (units.PowerCapacity[windoff_units].sum()* CF_wtof)) / (peak_load*FC) 
+ref['share_pv'] =     units.PowerCapacity[pv_units].sum()* CF_pv / (peak_load*FC) 
 
 # Computing rNTCs
 h_mean = inputs['parameters']['FlowMaximum']['val'].mean(axis=1)
@@ -108,7 +114,7 @@ for key in ["LostLoad_MaxPower", "LostLoad_MinPower", "LostLoad_2D", "LostLoad_2
     if key in results:
         lost_load += results[key].sum().sum()
 
-total_generation = results["OutputPower"].sum().sum()
+total_generation = results["OutputPower"].sum().sum() # genreation total en MWh
 
 # read pd.Series from csv
 # then add elements to the row
@@ -133,7 +139,7 @@ pc = ds.filter_by_tech_list(all_pc, inputs, ["HROR", "PHOT", "WTON", "WTOF"])
 En = af.mean() * pc
 Energy2 = af.dot(pc.transpose())
 total_vres = 365 * 24 * En.sum().sum() / 1E6
-total_vres2 = 365 * 24 * Energy2.sum() / 1E6
+total_vres2 = Energy2.sum() / 1E6
 
 print("af mean desc")
 print(af.mean().describe())
@@ -165,14 +171,14 @@ zone_results['Demand_[TWh]'] = zone_results['TotalLoad'] / 1E6
 zone_results['NetImports_[TWh]']= zone_results['NetImports'] / 1E6
 
 zone_results['Curtailment_[TWh]'] = zone_results['Curtailment'] / 1E6
-zone_results['Shedding_[TWh]'] = zone_results['ShedLoad'] / 1E6
+zone_results['Shedding_[TWh]'] = zone_results['ShedLoad']
 zone_results['LostLoad_[TWh]'] = lost_load / 1E6
 
-zone_results['MaxRESGeneration_[TWh]'] = total_vres2
-zone_results['CurtailmentToRESGeneration_[%]'] = 100 * zone_results['Curtailment_[TWh]'] / total_vres2
+zone_results['MaxRESGeneration_[TWh]'] = total_vres
+zone_results['CurtailmentToRESGeneration_[%]'] = 100 * zone_results['Curtailment_[TWh]'] / total_vres
 zone_results['TotalGeneration_[TWh]'] = total_generation / 1E6
-zone_results['ShareResGeneration_[%]'] = 100 * total_vres2 / total_generation
-#row.loc['MaxLoadSheddingShare_[%]'] = 100 * zone_results['MaxShedLoadShare']
+zone_results['ShareResGeneration_[%]'] = 100 * total_vres / total_generation
+#zone_results['MaxLoadSheddingShare_[%]'] = 100 * zone_results['MaxShedLoadShare']
 zone_results['MaxLoadSheddingShare_[%]'] = 0
 cf = {}
 #for fuel in ["GAS", "NUC", "WAT", "WIN", "SUN"]:

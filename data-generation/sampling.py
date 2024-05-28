@@ -140,6 +140,7 @@ def prepare_simulation_files(sample, cur_folder):
     peak_load, flex_units, slow_units, CF_wton, CF_wtof, CF_pv, ref_values = refinfo.tolist()
     capacity_ratio, share_flex, share_sto, share_wind, share_pv, rNTC = sample
 
+    FC_load = 0.736 #based on reference database demand
     
     #if share_flex > 0.905:
     #    print("Killing stalling simulation at the root")
@@ -178,11 +179,11 @@ def prepare_simulation_files(sample, cur_folder):
     # For wind and PV, the units should be lumped into a single unit:
         # ADJUST WIND AND PV :
     data = ds.adjust_capacity(data, ('WTOF','WIN'),
-                            value=peak_load/CF_wtof*(share_wind - ref_values['share_wind_on']), singleunit=True)
+                            value=(peak_load*FC_load)/CF_wtof*(share_wind - ref_values['share_wind_on']), singleunit=True)
     data = ds.adjust_capacity(data, ('WTON','WIN'),
-                            value=peak_load/CF_wton*(share_wind - ref_values['share_wind_off']), singleunit=True)
+                            value=(peak_load*FC_load)/CF_wton*(share_wind - ref_values['share_wind_off']), singleunit=True)
     data = ds.adjust_capacity(data, ('PHOT','SUN'),
-                            value=peak_load*share_pv/CF_pv, singleunit=True,dest_path=cur_folder, temp_path=tmp)
+                            value=(peak_load*FC_load)*share_pv/CF_pv, singleunit=True,dest_path=cur_folder, temp_path=tmp)
     
     
 
