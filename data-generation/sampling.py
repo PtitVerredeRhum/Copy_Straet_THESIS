@@ -35,13 +35,13 @@ except IndexError:
     sample_only = False
     prepare_one = False
 
-# from Carla's work
-capacity_ratio_range = (0.5, 1.8)
-share_flex_range     = (0.01, 0.9)
-share_storate_range  = (0, 0.5)
-share_wind_range     = (0, 0.5)
-share_pv_range       = (0, 0.5) 
-rntc_range           = (0, 0.7)    
+# from CLOUX's work
+capacity_ratio_range = (0.3, 1.3)
+share_flex_range     = (0.25, 0.99)
+share_storate_range  = (0, 3.0)
+share_wind_range     = (0, 0.55)
+share_pv_range       = (0, 0.35) 
+rntc_range           = (0, 0.75)    
 
 ranges = [capacity_ratio_range, share_flex_range,
           share_storate_range,  share_wind_range,
