@@ -30,7 +30,7 @@ echo "Making a $N_SAMPLES simulation"
 mkdir -p $SIM_DIR
 mkdir -p $SIM_NAME
 rm -rf $SIM_DIR/sim*
-echo "CapacityRatio,ShareFlex,ShareStorage,ShareWind,SharePV,rNTC,Cost_[E/MWh],Congestion_[h],PeakLoad_[MW],MaxCurtailment_[MW],MaxLoadShedding_[MW],Demand_[TWh],NetImports_[TWh],Curtailment_[TWh],Shedding_[TWh],LostLoad_[TWh],MaxRESGeneration_[TWh],CurtailmentToRESGeneration_[%],TotalGeneration_[TWh],ShareResGeneration_[%],MaxLoadSheddingShare_[%],CF_gas,CF_nuc,CF_wat,CF_win,CF_sun,GAMS_error" > $SIM_DIR/$DATASET_NAME
+echo "CapacityRatio,ShareFlex,ShareStorage,ShareWind,SharePV,rNTC,Cost_[E/MWh],Congestion_[h],PeakLoad_[MW],MaxCurtailment_[MW],MaxLoadShedding_[MW],Demand_[TWh],NetImports_[TWh],Curtailment_[TWh],Shedding_[MWh],LostLoad_[TWh],MaxRESGeneration_[TWh],CurtailmentToRESGeneration_[%],TotalGeneration_[TWh],ShareResGeneration_[%],MaxLoadSheddingShare_[%],CF_gas,CF_nuc,CF_wat,CF_win,CF_sun,GAMS_error" > $SIM_DIR/$DATASET_NAME
 
 mkdir -p slurm-outputs/$SIM_NAME/
 mkdir -p slurm-outputs/$SIM_NAME/lst_files/

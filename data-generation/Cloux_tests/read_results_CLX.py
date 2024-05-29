@@ -95,7 +95,7 @@ for c in countries:
     peak_load_df.loc[c,'NTC_zone'] = ntc #/ peak_load_df.loc[c,'max_load']
 
 #peak_load_df['weigthed'] = peak_load_df['max_load'] * peak_load_df['rNTC'] / peak_load_df['max_load'].sum()
-peak_load_df['weigthed'] = peak_load_df.loc[c,'NTC_zone']/peak_load_df['max_load'].sum()
+    peak_load_df.loc[c, 'weigthed'] = peak_load_df.loc[c,'NTC_zone']/peak_load_df['max_load'].sum()
 
 
 ref['rNTC'] = peak_load_df['weigthed'].sum() 
