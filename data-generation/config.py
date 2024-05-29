@@ -16,7 +16,7 @@ CRITERION = "maximin"
 N_SAMPLES = 50
 
 START_DATE = (2019, 1, 1, 0, 0, 0)
-STOP_DATE = (2022, 12, 31, 0, 0, 0)
+STOP_DATE = (2019, 12, 31, 0, 0, 0)
 
 WRITE_POINTS_TO_CSV = True
 SAMPLES_CSV_NAME = "samples.csv"

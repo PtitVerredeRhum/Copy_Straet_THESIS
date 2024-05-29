@@ -8,7 +8,7 @@
 #SBATCH --output=slurm-outputs/series-launcher_%A.txt
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1 # make sure it runs when all jobs are completed
-#SBATCH --mem-per-cpu=1 # megabytes
+#SBATCH --mem-per-cpu=500 # megabytes
 #SBATCH --partition=batch
 
 # Starts a series of jobs given its index and prepares the submission of the following series.

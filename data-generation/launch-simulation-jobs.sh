@@ -3,7 +3,7 @@
 #SBATCH --mail-user=f.straet@student.uliege.be
 #SBATCH --mail-type=BEGIN,END
 #SBATCH --job-name=Dispa-SET-data-generation
-#SBATCH --time=0-05:00:00 # days-hh:mm:ss
+#SBATCH --time=1-15:00:00 # days-hh:mm:ss
 #
 #SBATCH --output=slurm-outputs/res_365_%A_%a.txt
 #SBATCH --ntasks=1
@@ -72,7 +72,7 @@ sed -i "/^Option threads=/d" UCM_h.gms
 
 # timeout: 2h20
 GAMSLOGFILE="$LAUNCH_DIR/slurm-outputs/$BASE_NAME/gamsrun_$serie_idx-$SLURM_ARRAY_TASK_ID.log"
-srun --time=02:20:00 $GAMSPATH/gams UCM_h.gms threads=1 workSpace=9000 > $GAMSLOGFILE
+srun --time=20:20:00 $GAMSPATH/gams UCM_h.gms threads=1 workSpace=9000 > $GAMSLOGFILE
 status=$?
 
 GAMSSTATUS=$(grep "*** Status:" $GAMSLOGFILE)

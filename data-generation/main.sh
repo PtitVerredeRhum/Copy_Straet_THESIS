@@ -7,7 +7,7 @@
 #SBATCH --output=slurm-outputs/main-%A.txt
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=100 # MB
+#SBATCH --mem-per-cpu=9000 # MB
 #SBATCH --partition=batch
 
 # High-level script to submit all the jobs required to create a dataset, as configured in
@@ -42,7 +42,7 @@ touch slurm-outputs/$SIM_NAME/finished.txt
 # thus avoid allocating resources for this job
 sbatch --wait --output=slurm-outputs/$SIM_NAME/reference_%A.log launch-reference-job.sh
 
-srun --mem-per-cpu=100 python sampling.py --sample-only
+srun --mem-per-cpu=4000 python sampling.py --sample-only
 
 ## Jobs on slurm
 # Due to the limitation of the number of jobs in the queue (500), one cannot launch them all at a time
