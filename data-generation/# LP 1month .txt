@@ -1,0 +1,51 @@
+# LP 1month 
+
+Average electricity cost : 74.95905335267173 EUR/MWh
+
+Aggregated statistics for the considered area:
+Total Consumption:229.46841410723172 TWh
+Peak Load:392497.2587755462 MW
+Net Importations:0.0 TWh
+Total Load Shedding:0.0 TWh
+Total shifted load:0.0 TWh
+Maximum Load Shedding:0.0 MW
+Total Curtailed RES:217780.08509500627 TWh
+Maximum Curtailed RES:0.005188767416879183 MW
+
+Average electricity cost : 70.84461803158999 EUR/MWh
+
+Aggregated statistics for the considered area:
+Total Consumption:229.46841410723172 TWh
+Peak Load:392497.2587755462 MW
+Net Importations:0.0 TWh
+Total Load Shedding:0.0 TWh
+Total shifted load:0.0 TWh
+Maximum Load Shedding:0.0 MW
+Total Curtailed RES:80089164.75533465 TWh
+Maximum Curtailed RES:0.44043425906206696 MW
+
+Average electricity cost : 75.3527476978675 EUR/MWh
+
+Aggregated statistics for the considered area:
+Total Consumption:229.46841410723172 TWh
+Peak Load:392497.2587755462 MW
+Net Importations:0.0 TWh
+Total Load Shedding:0.0 TWh
+Total shifted load:0.0 TWh
+Maximum Load Shedding:0.0 MW
+Total Curtailed RES:53060.68751035076 TWh
+Maximum Curtailed RES:0.0011836177500000001 MW
+
+
+STORAGE: 
+Average electricity cost : 74.94492061160524 EUR/MWh
+
+Aggregated statistics for the considered area:
+Total Consumption:229.46841410723172 TWh
+Peak Load:392497.2587755462 MW
+Net Importations:0.0 TWh
+Total Load Shedding:0.0 TWh
+Total shifted load:0.0 TWh
+Maximum Load Shedding:0.0 MW
+Total Curtailed RES:203645.7881638285 TWh
+Maximum Curtailed RES:0.005089027851597667 MW

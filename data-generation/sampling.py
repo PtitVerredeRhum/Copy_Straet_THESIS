@@ -37,7 +37,7 @@ except IndexError:
 
 # from CLOUX's work
 capacity_ratio_range = (0.3, 1.3)
-share_flex_range     = (0.25, 0.99)
+share_flex_range     = (0.25, 0.90)
 share_storate_range  = (0, 3.0)
 share_wind_range     = (0, 0.55)
 share_pv_range       = (0, 0.35) 
@@ -178,10 +178,14 @@ def prepare_simulation_files(sample, cur_folder):
     
     # For wind and PV, the units should be lumped into a single unit:
         # ADJUST WIND AND PV :
+    #
+    perc_off = 0.3 # 2050 capacity installed : 100 000MWe * CF_wtof = 37 800
+    perc_on = 0.7 # 2050 capacity installed : 400 000MWe* CF_wton =  100 000
+    
     data = ds.adjust_capacity(data, ('WTOF','WIN'),
-                            value=(peak_load*FC_load)/CF_wtof*(share_wind - ref_values['share_wind_on']), singleunit=True)
+                            value=(peak_load*FC_load)/CF_wtof*(perc_off*share_wind), singleunit=True)
     data = ds.adjust_capacity(data, ('WTON','WIN'),
-                            value=(peak_load*FC_load)/CF_wton*(share_wind - ref_values['share_wind_off']), singleunit=True)
+                            value=(peak_load*FC_load)/CF_wton*(perc_on*share_wind), singleunit=True)
     data = ds.adjust_capacity(data, ('PHOT','SUN'),
                             value=(peak_load*FC_load)*share_pv/CF_pv, singleunit=True,write_gdx=True,dest_path=cur_folder, temp_path=tmp)
     
