@@ -72,7 +72,7 @@ sed -i "/^Option threads=/d" UCM_h.gms
 
 # timeout: 2h20
 GAMSLOGFILE="$LAUNCH_DIR/slurm-outputs/$BASE_NAME/gamsrun_$serie_idx-$SLURM_ARRAY_TASK_ID.log"
-srun --time=20:20:00 $GAMSPATH/gams UCM_h.gms threads=1 workSpace=9000 > $GAMSLOGFILE
+srun --time=2:30:00 $GAMSPATH/gams UCM_h.gms threads=1 workSpace=9000 > $GAMSLOGFILE
 status=$?
 
 GAMSSTATUS=$(grep "*** Status:" $GAMSLOGFILE)

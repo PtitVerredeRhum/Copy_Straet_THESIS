@@ -36,7 +36,7 @@ except IndexError:
     prepare_one = False
 
 # from CLOUX's work
-capacity_ratio_range = (0.3, 1.3)
+capacity_ratio_range = (0.4, 1.3)
 share_flex_range     = (0.25, 0.90)
 share_storate_range  = (0, 3.0)
 share_wind_range     = (0, 0.55)
@@ -73,14 +73,39 @@ def main():
 
     print(f"Generating samples in ranges {ranges}")
     # samples is numpy array
-    samples = lhs(N_DIMS, samples=N_SAMPLES, criterion=CRITERION)
+    samples_unconstraints = lhs(N_DIMS, samples=N_SAMPLES, criterion=CRITERION)
+    
 
     # scale sample on [0,1] interval to actual ranges
     for i, interval in enumerate(ranges):
         min = interval[0]
         max = interval[1]
-        samples[:,i] *= max - min
-        samples[:,i] += min
+        samples_unconstraints[:,i] *= max - min
+        samples_unconstraints[:,i] += min
+    
+    # CLOUX ############################################################
+    # CLOUX ############################################################
+    
+    # 0.9 is the min sum of CR+PV+WIND or simulations failed. 
+    # Min capacity installed is needed and 0.9 is determined thanks to simulations tests errors
+    samples = []
+    for point in samples_unconstraints: 
+        if point[0]+point[3]+point[4] > 0.9: 
+            samples.append(point)
+        else:
+            while True:
+                new_point = lhs(N_DIMS,samples=1)[0]
+                for i, interval in enumerate(ranges):
+                    min = interval[0]
+                    max = interval[1]
+                    new_point[i] *= max - min
+                    new_point[i] += min
+                if  new_point[0]+new_point[3]+new_point[4] > 0.9:
+                    samples.append(new_point)
+                    break
+    
+    # CLOUX ############################################################
+    # CLOUX ############################################################
     
     if WRITE_POINTS_TO_CSV or sample_only:
         df = pd.DataFrame(samples, columns=ranges_name)
