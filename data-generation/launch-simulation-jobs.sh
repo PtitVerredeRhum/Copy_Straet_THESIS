@@ -8,7 +8,7 @@
 #SBATCH --output=slurm-outputs/res_365_%A_%a.txt
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=9000 # megabytes 
+#SBATCH --mem-per-cpu=15000 # megabytes 
 #SBATCH --partition=batch
 #
 # called via main.sh with
@@ -72,7 +72,7 @@ sed -i "/^Option threads=/d" UCM_h.gms
 
 # timeout: 2h20
 GAMSLOGFILE="$LAUNCH_DIR/slurm-outputs/$BASE_NAME/gamsrun_$serie_idx-$SLURM_ARRAY_TASK_ID.log"
-srun --time=2:30:00 $GAMSPATH/gams UCM_h.gms threads=1 workSpace=9000 > $GAMSLOGFILE
+srun --time=2:30:00 $GAMSPATH/gams UCM_h.gms threads=1 workSpace=12000 > $GAMSLOGFILE
 status=$?
 
 GAMSSTATUS=$(grep "*** Status:" $GAMSLOGFILE)
