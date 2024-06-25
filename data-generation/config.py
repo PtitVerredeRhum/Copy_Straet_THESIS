@@ -13,7 +13,7 @@ TESTING = True
 
 # Latin Hypercube parameters
 CRITERION = "maximin"
-N_SAMPLES = 50
+N_SAMPLES = 3000
 
 START_DATE = (2019, 1, 1, 0, 0, 0)
 STOP_DATE = (2019, 12, 31, 0, 0, 0)

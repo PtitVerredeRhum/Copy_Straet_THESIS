@@ -8,7 +8,7 @@
 #SBATCH --output=slurm-outputs/series-launcher_%A.txt
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1 # make sure it runs when all jobs are completed
-#SBATCH --mem-per-cpu=500 # megabytes
+#SBATCH --mem-per-cpu=8000 # megabytes
 #SBATCH --partition=batch
 
 # Starts a series of jobs given its index and prepares the submission of the following series.
@@ -31,7 +31,7 @@ SIM_DIR=$(python -c "from config import SIMULATIONS_DIR; print(SIMULATIONS_DIR)"
 DATASET_NAME=$(python -c "from config import DATASET_NAME; print(DATASET_NAME)")
 LOG_FILE="slurm-outputs/$SIM_NAME/series-submitted.txt"
 
-series_size=400
+series_size=380
 
 total=$(( $N_SAMPLES / $series_size ))
 if (($N_SAMPLES > $total * $series_size)); then
@@ -61,8 +61,8 @@ echo "Range [0-$max] submitted for series idx $serie_idx" >> $LOG_FILE
 #                           v-- ensures max 128 jobs simultaneously (so that we don't exceed 128 * 333 MB per simulation = 42GB, max is 110GB)
 #ID=$(sbatch --array=0-$max%128 --output=slurm-outputs/$SIM_NAME/simulation_$serie_idx-%a.log --parsable one-per-sim.sh $serie_idx)
 #ID=$(sbatch --array=180-$max%150 --output=slurm-outputs/$SIM_NAME/simulation_$serie_idx-%a.log --parsable launch-simulation-jobs.sh $serie_idx)
-ID=$(sbatch --array=0-$max%150 --output=slurm-outputs/$SIM_NAME/simulation_$serie_idx-%a.log --parsable launch-simulation-jobs.sh $serie_idx)
+#ID=$(sbatch --array=0-$max%150 --output=slurm-outputs/$SIM_NAME/simulation_$serie_idx-%a.log --parsable launch-simulation-jobs.sh $serie_idx)
+ID=$(sbatch --array=0-$max%127 --output=slurm-outputs/$SIM_NAME/simulation_$serie_idx-%a.log --parsable launch-simulation-jobs.sh $serie_idx)
 
 # echo "Submitting with ${ID%%;*} as dependency, launch-job-series.sh $((serie_idx+1))"
 sbatch --dependency=afterok:${ID%%;*} launch-job-series.sh $((serie_idx+1))
-
