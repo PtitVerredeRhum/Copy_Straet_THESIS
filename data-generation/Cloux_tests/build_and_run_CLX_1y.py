@@ -18,10 +18,10 @@ import numpy as np
 config = ds.load_config('ConfigFiles/Config_CLX-MILP.xlsx')
 
 # Parameters 
-config['SimulationDirectory'] = 'simulations/simu_cloux_slurm/TestALLTrue_CR_250'
-config['SimulationType'] = 'LP clustered' #'Integer clustering' # 'LP clustered'
-config['StartDate'] = (2019, 10, 1, 0, 0, 0)
-config['StopDate'] = (2019, 10, 30, 0, 0, 0)
+config['SimulationDirectory'] = 'simulations/simu_cloux_slurm/Test_MILP_1y_60euMWH'
+config['SimulationType'] = 'Integer clustering' #'Integer clustering' # 'LP clustered'
+config['StartDate'] = (2019, 1, 1, 0, 0, 0)
+config['StopDate'] = (2019, 12, 31, 0, 0, 0)
 
 adj_sto = True 
 adj_ren = True
@@ -136,39 +136,56 @@ CF_wtof_list[CF_wtof_list["availability_factor_avg"].ne(0)].mean().loc["availabi
 
 tmp = os.environ["GLOBALSCRATCH"] + os.sep + "Temp_folder"  + os.sep + "Inputstmp.gdx"
     
+FC_load = 0.736 #based on reference database demand
+    
+    #if share_flex > 0.905:
+    #    print("Killing stalling simulation at the root")
+    #    return 1
 
-if adj_sto :
+if adj_sto :     
     # ADJUST STORAGE:
     data = ds.adjust_capacity(sim_data, ('BATS','OTH'), singleunit=True, 
-                                value=peak_load*0.7) # write_gdx=True, dest_path=config['SimulationDirectory'])
-if  adj_ren :   
-    # ADJUST WIND AND PV :
-    data = ds.adjust_capacity(data, ('WTON','WIN'),
-                            value=peak_load*0.065/CF_wton, singleunit=True)
-    data = ds.adjust_capacity(data, ('WTOF','WIN'),
-                            value=peak_load*0.3/CF_wtof, singleunit=True)
-    data = ds.adjust_capacity(data, ('PHOT','SUN'),
-                            value=peak_load*0.15/CF_pv, singleunit=True) # write_gdx=True, dest_path=config['SimulationDirectory'])
-if adj_cr :   
-    # ADJUST CAPACITY_RATIO
+                                value=peak_load*1.708981)
+if adj_cr : 
+    # ADJUST CAPACITY_RATIO : Variable dépendante de share storage et de share flex =>
     resultat = []
-
+    base_units = flex_units.append(slow_units)
     for index in base_units:
          terme = index.split('_')[1]  # Récupérer le deuxième terme
          terme_suivant = index.split('_')[2]  # Récupérer le troisième terme
          tuple_actuel = (terme, terme_suivant)
          if tuple_actuel not in resultat:  # Vérifier si le tuple n'est pas déjà dans la liste
              resultat.append(tuple_actuel)
-             data = ds.adjust_capacity(data, tuple_actuel, scaling=(1.7)/(ref['overcapacity']), singleunit=True)
-
+             data = ds.adjust_capacity(data, tuple_actuel, scaling=(1.291183)/(ref['overcapacity']), singleunit=True)
+ 
     
-if  adj_flex : 
+    
     # ADJUST FLEX
-    data = ds.adjust_flexibility(data, flex_units, slow_units, 0.75, singleunit=True) # write_gdx=True, dest_path=config['SimulationDirectory'])
-if ajd_ntc :   
+if  adj_flex : 
+    data = ds.adjust_flexibility(data, flex_units, slow_units, 0.757526, singleunit=True)
+    
+    
+    # dispa-set function to adjust the ntc:
     # ADJUST NTC
-    data = ds.adjust_ntc(data, value=2.0/ref['rNTC'], write_gdx=True, dest_path=config['SimulationDirectory'])
-
+if ajd_ntc :
+    data = ds.adjust_ntc(data, value=0.393664/ref['rNTC'])
+    
+   
+    
+    # tmp = os.environ["LOCALSCRATCH"] + os.sep + "Inputs.gdx"
+if  adj_ren :    
+    # For wind and PV, the units should be lumped into a single unit:
+        # ADJUST WIND AND PV :
+    #
+    perc_off = 0.3 # 2050 capacity installed : 100 000MWe * CF_wtof = 37 800
+    perc_on = 0.7 # 2050 capacity installed : 400 000MWe* CF_wton =  100 000
+    
+    data = ds.adjust_capacity(data, ('WTOF','WIN'),
+                            value=(peak_load*FC_load)/CF_wtof*(perc_off*0.343041), singleunit=True)
+    data = ds.adjust_capacity(data, ('WTON','WIN'),
+                            value=(peak_load*FC_load)/CF_wton*(perc_on*0.343041), singleunit=True)
+    data = ds.adjust_capacity(data, ('PHOT','SUN'),
+                            value=(peak_load*FC_load)*0.316212/CF_pv, singleunit=True,write_gdx=True,dest_path=config['SimulationDirectory'])
 
 # Solve using GAMS by scirpt.sh
 

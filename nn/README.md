@@ -1,11 +1,12 @@
 # Neural network
 
-Re-writing of Carla's work, for the most part
+This folder contains my Machine Learning Models and the generated dataset (CLOUX).
+
 
 ## Files
 
-- [`config.py`](config.py) holds the configuration of the network to be trained, name, data to use, inputs and outputs
-- [`model.py`](model.py) holds the description of the model to be trained, via the `build_model` function
-- [`train.py`](train.py) executes the tuner search for the best model and training of that best model
-- [`view.py`](view.py) holds different utilities to view the results of some model and its performances.
-    - use `view.py --surface <in1> <in2> <out>` to create a 3d surface of the out-th output depending on the in1 and in2-th inputs. The other inputs are constant and parameterizable with sliders.
+- [`ML_Curtailment_CLX.ipynb`](ML_Curtailment_CLX.ipynb) holds the ML model used to predict the first target : Curtailment.
+- [`ML_LoadShedding_CLX.ipynb`](ML_LoadShedding_CLX.ipynb) holds the ML model used to predict the second target : Load shedding.
+- [`ML_LoadShedding_OverSamp_CLX.ipynb`](ML_LoadShedding_OverSamp_CLX.ipynb) holds the ML model used to predict the second target by using the oversampling: Load shedding.
+- [`dataset_best_2862_3000.csv`](dataset_best_2862_3000.csv) is the LP dataset generated.
+  

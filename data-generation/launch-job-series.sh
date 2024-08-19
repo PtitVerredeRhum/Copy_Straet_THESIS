@@ -3,12 +3,12 @@
 #SBATCH --mail-user=f.straet@student.uliege.be
 #SBATCH --mail-type=BEGIN,END
 #SBATCH --job-name=Job-launcher
-#SBATCH --time=1-05:00:00 # days-hh:mm:ss
+#SBATCH --time=1-23:00:00 # days-hh:mm:ss
 #
 #SBATCH --output=slurm-outputs/series-launcher_%A.txt
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1 # make sure it runs when all jobs are completed
-#SBATCH --mem-per-cpu=8000 # megabytes
+#SBATCH --mem-per-cpu=40000 # megabytes
 #SBATCH --partition=batch
 
 # Starts a series of jobs given its index and prepares the submission of the following series.
@@ -62,7 +62,7 @@ echo "Range [0-$max] submitted for series idx $serie_idx" >> $LOG_FILE
 #ID=$(sbatch --array=0-$max%128 --output=slurm-outputs/$SIM_NAME/simulation_$serie_idx-%a.log --parsable one-per-sim.sh $serie_idx)
 #ID=$(sbatch --array=180-$max%150 --output=slurm-outputs/$SIM_NAME/simulation_$serie_idx-%a.log --parsable launch-simulation-jobs.sh $serie_idx)
 #ID=$(sbatch --array=0-$max%150 --output=slurm-outputs/$SIM_NAME/simulation_$serie_idx-%a.log --parsable launch-simulation-jobs.sh $serie_idx)
-ID=$(sbatch --array=0-$max%127 --output=slurm-outputs/$SIM_NAME/simulation_$serie_idx-%a.log --parsable launch-simulation-jobs.sh $serie_idx)
+ID=$(sbatch --array=0-$max%61 --output=slurm-outputs/$SIM_NAME/simulation_$serie_idx-%a.log --parsable launch-simulation-jobs.sh $serie_idx)
 
 # echo "Submitting with ${ID%%;*} as dependency, launch-job-series.sh $((serie_idx+1))"
 sbatch --dependency=afterok:${ID%%;*} launch-job-series.sh $((serie_idx+1))

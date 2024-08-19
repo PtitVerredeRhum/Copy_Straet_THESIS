@@ -17,7 +17,7 @@ import pandas as pd
 import numpy as np
 # Load the inputs and the results of the simulation
 #inputs,results = ds.get_sim_results(path='../Simulations/simulation_test',cache=False)
-path='../simulations/simu_cloux/LP_1year_UCM' #   MILP_1year_UCM
+path='../simulations/simu_cloux/AdjSTO_95_1001-1030_LP' #   MILP_1year_UCM
 inputs,results = ds.get_sim_results(path,cache=False)
 
 peak_load = inputs["parameters"]["Demand"]["val"][0].sum(axis=0).max()
@@ -49,7 +49,7 @@ coal_units = units[units.Fuel.isin(["HRD"])].index
 variable_costs = inputs["parameters"]["CostVariable"]["val"]
 
 # Cosnidering that there are no Stationnary batteries in 2019 , a low value of Power Capacity of 10MW is considered for each.
-units.PowerCapacity[sto_units] = 10 #MW
+#units.PowerCapacity[sto_units] = 10 #MW
 
 
 for u in coal_units:
@@ -195,30 +195,30 @@ cf = {}
 
 # # if needed, define the plotting range for the dispatch plot:
 # import pandas as pd
-# rng = pd.date_range(start='2019-10-09',end='2019-10-25',freq='h')
+rng = pd.date_range(start='2019-10-09',end='2019-10-25',freq='h')
 
-# # Generate country-specific plots
-# ds.plot_zone(inputs,results, z='SE', z_th='SE_th', rng=rng)
+# Generate country-specific plots
+ds.plot_zone(inputs,results, z='DK', z_th='CZ_th', rng=rng)
 
-# ds.plot_zone(inputs,results, z='DE', z_th='DE_th', rng=rng)
+#ds.plot_zone(inputs,results, z='DE', z_th='DE_th', rng=rng)
 
-# # #Bar plot with the installed capacities in all countries:
-# cap = ds.plot_zone_capacities(inputs,results)
+# #Bar plot with the installed capacities in all countries:
+#cap = ds.plot_zone_capacities(inputs,results)
 
-# # #Bar plot with installed storage capacity
-# sto = ds.plot_tech_cap(inputs)
+# #Bar plot with installed storage capacity
+#sto = ds.plot_tech_cap(inputs)
 
-# # #Violin plot for CO2 emissions
-# ds.plot_co2(inputs, results, figsize=(9, 6), width=0.9)
+# #Violin plot for CO2 emissions
+#ds.plot_co2(inputs, results, figsize=(9, 6), width=0.9)
 
-# # #Bar plot with the energy balances in all countries:
-# ds.plot_energy_zone_fuel(inputs,results,ds.get_indicators_powerplant(inputs,results))
+# #Bar plot with the energy balances in all countries:
+#ds.plot_energy_zone_fuel(inputs,results,ds.get_indicators_powerplant(inputs,results))
 
-# # #Analyse the results for each country and provide quantitative indicators:
-# # #r = ds.get_result_analysis(inputs,results)
+# #Analyse the results for each country and provide quantitative indicators:
+# #r = ds.get_result_analysis(inputs,results)
 
-# # #Plot the reservoir levels
-# #ds.plot_storage_levels(inputs,results,'DE')
+# #Plot the reservoir levels
+#ds.plot_storage_levels(inputs,results,'DE')
 
 # # #Analyze power flow tracing
 # # #pft, pft_prct = ds.plot_power_flow_tracing_matrix(inputs, results, cmap="magma_r", figsize=(15, 10))

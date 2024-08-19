@@ -1,7 +1,6 @@
 # Master Thesis 
-All work related to my master thesis.
 
-Author: François Straet
+Author: Romain Cloux
 
 Advisor: Sylvain Quoilin
 

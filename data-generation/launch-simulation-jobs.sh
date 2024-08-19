@@ -7,8 +7,8 @@
 #
 #SBATCH --output=slurm-outputs/res_365_%A_%a.txt
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=20000 # megabytes 
+#SBATCH --cpus-per-task=8
+#SBATCH --mem-per-cpu=5000 # megabytes 
 #SBATCH --partition=batch
 #
 # called via main.sh with
@@ -71,8 +71,12 @@ echo "File prepared, starting simulation..."
 sed -i "/^Option threads=/d" UCM_h.gms
 
 # timeout: 2h20
+#GAMSLOGFILE="$LAUNCH_DIR/slurm-outputs/$BASE_NAME/gamsrun_$serie_idx-$SLURM_ARRAY_TASK_ID.log"
+#srun --time=1-20:00:00 $GAMSPATH/gams UCM_h.gms threads=1 workSpace=40000 > $GAMSLOGFILE
+#status=$?
+
 GAMSLOGFILE="$LAUNCH_DIR/slurm-outputs/$BASE_NAME/gamsrun_$serie_idx-$SLURM_ARRAY_TASK_ID.log"
-srun --time=2:30:00 $GAMSPATH/gams UCM_h.gms threads=1 workSpace=15000 > $GAMSLOGFILE
+srun --time=1-00:00:00 $GAMSPATH/gams UCM_h.gms threads=8 workSpace=40000 > $GAMSLOGFILE
 status=$?
 
 GAMSSTATUS=$(grep "*** Status:" $GAMSLOGFILE)
@@ -101,5 +105,4 @@ rm -rf $CUR_DIR/
 
 echo "Simulation $simulation_idx is done (job id $SLURM_JOBID), GAMS error: $gamserror" >> slurm-outputs/$BASE_NAME/finished.txt
 echo "Job ID $SLURM_JOBID n°$SLURM_ARRAY_TASK_ID is finished"
-
 
